@@ -1,0 +1,320 @@
+/* Direction artistique du Hub : fenêtre pixel-art posée sur un monde,
+   façon panel de gestion de groupe en jeu de gestion pixel art.
+   Ce fichier est chargé uniquement par hub.html : il ne touche pas
+   au panel MJ principal (index.html). */
+
+:root {
+  --world-sky: #1c3a52;
+  --world-grass: #1f4a2f;
+  --world-ground: #142418;
+
+  --panel-bg: #171b26;
+  --panel-bg-alt: #1e2333;
+  --panel-border: #0a0c12;
+  --panel-edge: #333c56;
+
+  --text: #eef1f8;
+  --text-muted: #8d96b0;
+
+  --cream: #f3e3b8;
+  --cream-dark: #b99a55;
+  --cream-text: #3b2d12;
+
+  --teal: #35d6a6;
+  --teal-dark: #1b8f6c;
+
+  --red: #ef5757;
+  --red-dark: #a53434;
+
+  --gold: #f5c94c;
+
+  --pc: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 20px 12px 40px;
+  /* Bandes franches plutôt qu'un dégradé lissé : un ciel pixel-art
+     s'assume par paliers de couleur, pas par un blend continu. */
+  background:
+    linear-gradient(
+      180deg,
+      var(--world-sky) 0%, var(--world-sky) 30%,
+      var(--world-grass) 30%, var(--world-grass) 68%,
+      var(--world-ground) 68%, var(--world-ground) 100%
+    );
+  color: var(--text);
+  font-family: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+}
+
+/* ---------- Fenêtre flottante ---------- */
+
+.game-frame {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border);
+  border-bottom-width: 6px;
+  padding: 16px 14px 22px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+  /* Ombre dure et plate (sans flou) : convention pixel-art, pas de glow. */
+  box-shadow: 8px 8px 0 var(--panel-border);
+}
+
+header {
+  position: static;
+  background: transparent;
+  border-bottom: 2px dashed var(--panel-edge);
+  padding: 4px 0 14px;
+  margin-bottom: 14px;
+}
+
+header h1 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  /* Contour dur (pas de text-shadow flou) pour un rendu pixel net. */
+  text-shadow: 2px 2px 0 var(--panel-border);
+}
+
+header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ---------- Boutons pixel 3D ---------- */
+
+.btn {
+  font-family: inherit;
+  border: 2px solid var(--panel-border);
+  border-bottom-width: 5px;
+  border-bottom-color: var(--cream-dark);
+  background: var(--cream);
+  color: var(--cream-text);
+  padding: 10px 14px;
+  border-radius: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  --pc: 4px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+  transition: transform 0.05s ease, border-bottom-width 0.05s ease;
+}
+
+.btn.small { padding: 7px 10px; font-size: 0.72rem; }
+
+.btn.primary {
+  background: var(--teal);
+  color: #052a20;
+  border-bottom-color: var(--teal-dark);
+}
+
+.btn.danger {
+  background: var(--red);
+  color: #2a0a0a;
+  border-bottom-color: var(--red-dark);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--panel-edge);
+  border-bottom-color: var(--panel-edge);
+}
+
+.btn:active {
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+}
+
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* ---------- Panels ---------- */
+
+.panel {
+  background: var(--panel-bg-alt);
+  border: 2px solid var(--panel-edge);
+  border-radius: 0;
+  padding: 12px 12px 14px;
+  margin-bottom: 14px;
+  --pc: 8px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+}
+
+.panel h3 {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  font-size: 0.78rem;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px dashed var(--panel-edge);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+.field input,
+.field textarea,
+select,
+textarea {
+  font-family: inherit;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 9px 10px;
+  border-radius: 0;
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
+  /* Inset dur : simule un renfoncement plutôt qu'un halo. */
+  box-shadow: inset 2px 2px 0 var(--panel-border);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+textarea { resize: vertical; min-height: 44px; }
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 2px 0 10px;
+  line-height: 1.4;
+}
+
+#save-confirm {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* ---------- Onglets de filtre ---------- */
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.filter-tab {
+  font-family: inherit;
+  border: 2px solid var(--panel-border);
+  border-bottom-width: 4px;
+  border-bottom-color: var(--panel-edge);
+  background: var(--panel-bg);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  --pc: 3px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+}
+
+.filter-tab.active {
+  background: var(--gold);
+  color: var(--cream-text);
+  border-bottom-color: var(--cream-dark);
+  font-weight: 700;
+}
+
+/* ---------- Cards de rôles (slots d'inventaire) ---------- */
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-edge);
+  border-top: 4px solid var(--team-color, var(--panel-edge));
+  border-radius: 0;
+  padding: 8px 6px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+  text-align: center;
+  box-shadow: inset 2px 2px 0 var(--panel-border);
+  transition: transform 0.05s ease, border-color 0.1s ease;
+  --pc: 5px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+}
+
+.role-card:active { transform: scale(0.95); }
+
+.role-card.selected {
+  border-color: var(--team-color, var(--gold));
+  background: var(--panel-bg-alt);
+}
+
+.role-card-name {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.empty,
+.empty.small {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px 0;
+  font-size: 0.75rem;
+}
+
+.empty.small { grid-column: 1 / -1; }

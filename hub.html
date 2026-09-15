@@ -4,61 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
   <title>Hub — Paramètres de partie</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="hub.css">
 </head>
 <body>
-  <header>
-    <h1>⚙️ Hub — Paramètres de partie</h1>
-    <p>Configure la partie avant de lancer le panel MJ</p>
-  </header>
+  <div class="game-frame">
+    <header>
+      <h1>⚙️ Hub — Paramètres de partie</h1>
+      <p>Configure la partie avant de lancer le panel MJ</p>
+    </header>
 
-  <div class="top-actions">
-    <a href="index.html" class="btn">← Retour au panel</a>
-  </div>
-
-  <div class="panel">
-    <h3>🎲 Partie</h3>
-    <label class="field">
-      Nom de la partie
-      <input id="game-name" type="text" placeholder="Ex : Soirée du 15 septembre">
-    </label>
-    <label class="field">
-      Nombre de joueurs attendus
-      <input id="expected-players" type="number" min="1" max="40" placeholder="Ex : 12">
-    </label>
-  </div>
-
-  <div class="panel">
-    <h3>🃏 Rôles sélectionnés pour cette partie</h3>
-    <p class="hint">Clique sur une card pour la retirer de la partie.</p>
-    <div class="filter-tabs" id="selected-filter" data-target="selected"></div>
-    <div id="roles-selected" class="role-grid"></div>
-  </div>
-
-  <div class="panel">
-    <h3>📚 Rôles disponibles</h3>
-    <p class="hint">Clique sur une card pour l'ajouter à la partie.</p>
-    <div class="filter-tabs" id="available-filter" data-target="available"></div>
     <div class="top-actions">
-      <button type="button" id="select-all-roles" class="btn small">Tout sélectionner</button>
-      <button type="button" id="select-none-roles" class="btn small ghost">Tout retirer</button>
+      <a href="index.html" class="btn ghost">← Retour au panel</a>
     </div>
-    <div id="roles-available" class="role-grid"></div>
-  </div>
 
-  <div class="panel">
-    <h3>📝 Règles maison</h3>
-    <label class="field">
-      Notes / variantes personnalisées
-      <textarea id="house-rules" placeholder="Ex : le Cupidon peut se choisir lui-même, vote à main levée..."></textarea>
-    </label>
-  </div>
+    <div class="panel">
+      <h3>🎲 Partie</h3>
+      <label class="field">
+        Nom de la partie
+        <input id="game-name" type="text" placeholder="Ex : Soirée du 15 septembre">
+      </label>
+      <label class="field">
+        Nombre de joueurs attendus
+        <input id="expected-players" type="number" min="1" max="40" placeholder="Ex : 12">
+      </label>
+    </div>
 
-  <div class="top-actions">
-    <button id="save-settings" class="btn">💾 Enregistrer les paramètres</button>
-    <button id="reset-settings" class="btn danger">Réinitialiser</button>
+    <div class="panel">
+      <h3>🃏 Rôles sélectionnés pour cette partie</h3>
+      <p class="hint">Clique sur une card pour la retirer de la partie.</p>
+      <div class="filter-tabs" id="selected-filter" data-target="selected"></div>
+      <div id="roles-selected" class="role-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>📚 Rôles disponibles</h3>
+      <p class="hint">Clique sur une card pour l'ajouter à la partie.</p>
+      <div class="filter-tabs" id="available-filter" data-target="available"></div>
+      <div class="top-actions">
+        <button type="button" id="select-all-roles" class="btn small">Tout sélectionner</button>
+        <button type="button" id="select-none-roles" class="btn small ghost">Tout retirer</button>
+      </div>
+      <div id="roles-available" class="role-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>📝 Règles maison</h3>
+      <label class="field">
+        Notes / variantes personnalisées
+        <textarea id="house-rules" placeholder="Ex : le Cupidon peut se choisir lui-même, vote à main levée..."></textarea>
+      </label>
+    </div>
+
+    <div class="top-actions">
+      <button id="save-settings" class="btn primary">💾 Enregistrer les paramètres</button>
+      <button id="reset-settings" class="btn danger">Réinitialiser</button>
+    </div>
+    <p id="save-confirm" class="hint" hidden>Paramètres enregistrés.</p>
   </div>
-  <p id="save-confirm" class="hint" hidden>Paramètres enregistrés.</p>
 
   <script src="roles.js"></script>
   <script src="settings.js"></script>
