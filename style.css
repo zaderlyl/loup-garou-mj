@@ -282,15 +282,50 @@ textarea { resize: vertical; min-height: 40px; }
 }
 
 .role-group {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--team-color, var(--border));
+  border-radius: 8px;
+  background: var(--bg);
+  overflow: hidden;
 }
 
 .role-group-title {
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--team-color, var(--text-muted));
-  margin-bottom: 6px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.role-group-title::-webkit-details-marker { display: none; }
+
+.role-group-title::before {
+  content: '▸';
+  margin-right: 8px;
+  font-size: 0.7rem;
+  transition: transform 0.15s ease;
+}
+
+.role-group[open] > .role-group-title::before {
+  transform: rotate(90deg);
+}
+
+.role-group-count {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.role-group-body {
+  padding: 4px 12px 10px;
+  border-top: 1px solid var(--border);
 }
 
 .role-check {

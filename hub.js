@@ -1,5 +1,18 @@
 const el = (id) => document.getElementById(id);
 
+function teamCountLabel(teamId) {
+  const boxes = document.querySelectorAll(`#roles-checklist details[data-team="${teamId}"] input[type=checkbox]`);
+  const checked = Array.from(boxes).filter((cb) => cb.checked).length;
+  return `${checked}/${boxes.length}`;
+}
+
+function updateTeamCount(teamId) {
+  const span = document.querySelector(`#roles-checklist details[data-team="${teamId}"] .role-group-count`);
+  if (span) span.textContent = teamCountLabel(teamId);
+}
+
+// Un menu déroulant (accordéon) par camp — Village / Loups-Garous / Solo —
+// pour ne pas afficher toute la liste des rôles d'un coup.
 function renderRolesChecklist(settings) {
   const allEnabled = !settings.enabledRoles || settings.enabledRoles.length === 0;
   const groups = {};
@@ -10,18 +23,29 @@ function renderRolesChecklist(settings) {
 
   let html = '';
   Object.keys(groups).forEach((teamId) => {
-    html += `<div class="role-group"><div class="role-group-title" style="--team-color:${TEAMS[teamId].color}">${TEAMS[teamId].label}</div>`;
+    const checkedCount = groups[teamId].filter((r) => allEnabled || settings.enabledRoles.includes(r.id)).length;
+    html += `
+      <details class="role-group" data-team="${teamId}">
+        <summary class="role-group-title" style="--team-color:${TEAMS[teamId].color}">
+          <span>${TEAMS[teamId].label}</span>
+          <span class="role-group-count">${checkedCount}/${groups[teamId].length}</span>
+        </summary>
+        <div class="role-group-body">`;
     groups[teamId].forEach((r) => {
       const checked = allEnabled || settings.enabledRoles.includes(r.id);
       html += `
-        <label class="tracker toggle role-check">
-          <input type="checkbox" data-role="${r.id}" ${checked ? 'checked' : ''}>
-          <span>${r.name}</span>
-        </label>`;
+          <label class="tracker toggle role-check">
+            <input type="checkbox" data-role="${r.id}" data-team="${teamId}" ${checked ? 'checked' : ''}>
+            <span>${r.name}</span>
+          </label>`;
     });
-    html += '</div>';
+    html += '</div></details>';
   });
   el('roles-checklist').innerHTML = html;
+
+  el('roles-checklist').addEventListener('change', (e) => {
+    if (e.target.dataset.team) updateTeamCount(e.target.dataset.team);
+  });
 }
 
 function getCheckedRoleIds() {
@@ -34,6 +58,7 @@ function setAllChecklist(value) {
   document.querySelectorAll('#roles-checklist input[type=checkbox]').forEach((cb) => {
     cb.checked = value;
   });
+  Object.keys(TEAMS).forEach(updateTeamCount);
 }
 
 function loadIntoForm() {
