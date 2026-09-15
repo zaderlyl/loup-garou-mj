@@ -3,33 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-  <title>Panel MJ — Loup-Garou de Thiercelieux</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Loup-Garou de Thiercelieux — Panel MJ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <header>
-    <h1>🐺 Panel MJ — Loup-Garou de Thiercelieux</h1>
-    <p>Suivi des joueurs, rôles et pouvoirs pendant la partie</p>
-  </header>
+  <div class="game-frame home-frame">
+    <p class="kicker">Loup-Garou de Thiercelieux</p>
+    <h1>🐺 Panel MJ</h1>
 
-  <div class="top-actions">
-    <a href="hub.html" class="btn">⚙️ Paramètres</a>
-    <button id="reset-game" class="btn danger">🔄 Nouvelle partie</button>
+    <div class="home-actions">
+      <a href="hub.html" class="btn primary big">Nouvelle partie</a>
+      <a href="panel.html" id="resume-link" class="btn big" hidden>Reprendre la partie en cours</a>
+    </div>
   </div>
 
-  <div id="summary"></div>
+  <button type="button" id="info-open" class="info-button" title="À propos du projet" aria-label="À propos du projet">ℹ</button>
 
-  <form id="add-player-form">
-    <input id="new-player-name" type="text" placeholder="Nom du joueur" autocomplete="off" required>
-    <button type="submit" class="btn">Ajouter</button>
-  </form>
+  <div id="info-overlay" class="role-detail-overlay" hidden>
+    <div class="role-detail-card info-card" style="--team-color:transparent">
+      <button type="button" id="info-close" class="btn small ghost role-detail-close">✕</button>
+      <h3 class="role-detail-name">🐺 Panel MJ — Loup-Garou de Thiercelieux</h3>
+      <p class="role-detail-label">Le projet</p>
+      <p>Application locale pour aider un Maître du Jeu à suivre en direct une partie de
+        Loup-Garou de Thiercelieux : rôles, statut vivant/mort, pouvoirs spécifiques
+        (potions, protections, charmes...) et paramètres de partie.</p>
+      <p class="role-detail-label">Pages</p>
+      <ul class="role-detail-tracker-list">
+        <li><strong>Hub</strong> — configure la partie (joueurs, rôles, règles maison)</li>
+        <li><strong>Panel</strong> — suivi en direct pendant la partie</li>
+      </ul>
+      <p class="role-detail-label">Données</p>
+      <p>Rien ne quitte l'appareil : tout est sauvegardé dans le <code>localStorage</code>
+        du navigateur.</p>
+      <p class="role-detail-label">Code source</p>
+      <p><a href="https://github.com/zaderlyl/loup-garou-mj" target="_blank" rel="noopener">github.com/zaderlyl/loup-garou-mj</a></p>
+    </div>
+  </div>
 
-  <div id="side-panels"></div>
-
-  <div id="players"></div>
-
-  <script src="roles.js"></script>
-  <script src="settings.js"></script>
-  <script src="app.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

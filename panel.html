@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Panel MJ — Loup-Garou de Thiercelieux</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🐺 Panel MJ — Loup-Garou de Thiercelieux</h1>
+    <p>Suivi des joueurs, rôles et pouvoirs pendant la partie</p>
+  </header>
+
+  <div class="top-actions">
+    <a href="index.html" class="btn ghost">🏠 Accueil</a>
+    <a href="hub.html" class="btn">⚙️ Paramètres</a>
+    <button id="reset-game" class="btn danger">🔄 Nouvelle partie</button>
+  </div>
+
+  <div id="summary"></div>
+
+  <form id="add-player-form">
+    <input id="new-player-name" type="text" placeholder="Nom du joueur" autocomplete="off" required>
+    <button type="submit" class="btn">Ajouter</button>
+  </form>
+
+  <div id="side-panels"></div>
+
+  <div id="players"></div>
+
+  <script src="roles.js"></script>
+  <script src="settings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
