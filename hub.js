@@ -1,64 +1,59 @@
 const el = (id) => document.getElementById(id);
 
-function teamCountLabel(teamId) {
-  const boxes = document.querySelectorAll(`#roles-checklist details[data-team="${teamId}"] input[type=checkbox]`);
-  const checked = Array.from(boxes).filter((cb) => cb.checked).length;
-  return `${checked}/${boxes.length}`;
-}
+const FILTERS = [
+  { id: 'all', label: 'Tous' },
+  { id: 'village', label: TEAMS.village.label },
+  { id: 'loups', label: TEAMS.loups.label },
+  { id: 'solo', label: TEAMS.solo.label },
+];
 
-function updateTeamCount(teamId) {
-  const span = document.querySelector(`#roles-checklist details[data-team="${teamId}"] .role-group-count`);
-  if (span) span.textContent = teamCountLabel(teamId);
-}
+// Ensemble des rôles actuellement sélectionnés pour la partie (état en
+// mémoire, persisté dans les settings uniquement au clic sur « Enregistrer »).
+let selectedRoles = new Set();
 
-// Un menu déroulant (accordéon) par camp — Village / Loups-Garous / Solo —
-// pour ne pas afficher toute la liste des rôles d'un coup.
-function renderRolesChecklist(settings) {
+// Filtre par camp appliqué indépendamment à chaque zone (disponibles / sélectionnés).
+const filterState = { available: 'all', selected: 'all' };
+
+function initSelection() {
+  const settings = loadSettings();
   const allEnabled = !settings.enabledRoles || settings.enabledRoles.length === 0;
-  const groups = {};
-  ROLES.forEach((r) => {
-    groups[r.team] = groups[r.team] || [];
-    groups[r.team].push(r);
-  });
-
-  let html = '';
-  Object.keys(groups).forEach((teamId) => {
-    const checkedCount = groups[teamId].filter((r) => allEnabled || settings.enabledRoles.includes(r.id)).length;
-    html += `
-      <details class="role-group" data-team="${teamId}">
-        <summary class="role-group-title" style="--team-color:${TEAMS[teamId].color}">
-          <span>${TEAMS[teamId].label}</span>
-          <span class="role-group-count">${checkedCount}/${groups[teamId].length}</span>
-        </summary>
-        <div class="role-group-body">`;
-    groups[teamId].forEach((r) => {
-      const checked = allEnabled || settings.enabledRoles.includes(r.id);
-      html += `
-          <label class="tracker toggle role-check">
-            <input type="checkbox" data-role="${r.id}" data-team="${teamId}" ${checked ? 'checked' : ''}>
-            <span>${r.name}</span>
-          </label>`;
-    });
-    html += '</div></details>';
-  });
-  el('roles-checklist').innerHTML = html;
-
-  el('roles-checklist').addEventListener('change', (e) => {
-    if (e.target.dataset.team) updateTeamCount(e.target.dataset.team);
-  });
+  selectedRoles = new Set(allEnabled ? ROLES.map((r) => r.id) : settings.enabledRoles);
 }
 
-function getCheckedRoleIds() {
-  return Array.from(document.querySelectorAll('#roles-checklist input[type=checkbox]'))
-    .filter((cb) => cb.checked)
-    .map((cb) => cb.dataset.role);
+function renderFilterTabs(containerId, target) {
+  const html = FILTERS.map(
+    (f) => `<button type="button" class="filter-tab ${filterState[target] === f.id ? 'active' : ''}" data-filter-target="${target}" data-filter-value="${f.id}">${f.label}</button>`
+  ).join('');
+  el(containerId).innerHTML = html;
 }
 
-function setAllChecklist(value) {
-  document.querySelectorAll('#roles-checklist input[type=checkbox]').forEach((cb) => {
-    cb.checked = value;
-  });
-  Object.keys(TEAMS).forEach(updateTeamCount);
+// `emoji` fait office d'illustration temporaire (idée future : remplacer par
+// une vraie image par rôle).
+function roleCard(role, selected) {
+  return `
+    <button type="button" class="role-card ${selected ? 'selected' : ''}" data-role="${role.id}" style="--team-color:${TEAMS[role.team].color}" title="${role.desc}">
+      <span class="role-card-art">${role.emoji || '🎭'}</span>
+      <span class="role-card-name">${role.name}</span>
+    </button>`;
+}
+
+function renderGrids() {
+  const availableRoles = ROLES.filter((r) => !selectedRoles.has(r.id) && (filterState.available === 'all' || r.team === filterState.available));
+  const selected = ROLES.filter((r) => selectedRoles.has(r.id) && (filterState.selected === 'all' || r.team === filterState.selected));
+
+  el('roles-available').innerHTML = availableRoles.length
+    ? availableRoles.map((r) => roleCard(r, false)).join('')
+    : '<p class="empty small">Aucun rôle dans ce camp.</p>';
+
+  el('roles-selected').innerHTML = selected.length
+    ? selected.map((r) => roleCard(r, true)).join('')
+    : '<p class="empty small">Aucun rôle sélectionné.</p>';
+}
+
+function toggleRole(roleId) {
+  if (selectedRoles.has(roleId)) selectedRoles.delete(roleId);
+  else selectedRoles.add(roleId);
+  renderGrids();
 }
 
 function loadIntoForm() {
@@ -66,25 +61,27 @@ function loadIntoForm() {
   el('game-name').value = settings.gameName || '';
   el('expected-players').value = settings.expectedPlayers || '';
   el('house-rules').value = settings.houseRules || '';
-  renderRolesChecklist(settings);
+  initSelection();
+  renderFilterTabs('available-filter', 'available');
+  renderFilterTabs('selected-filter', 'selected');
+  renderGrids();
 }
 
 function persistForm() {
-  const checked = getCheckedRoleIds();
-  const allChecked = checked.length === ROLES.length;
+  const allSelected = selectedRoles.size === ROLES.length;
   const settings = {
     gameName: el('game-name').value.trim(),
     expectedPlayers: el('expected-players').value ? Number(el('expected-players').value) : null,
-    // Si tout est coché on stocke null (= pas de restriction) plutôt qu'une
-    // liste complète, pour rester cohérent si de nouveaux rôles sont ajoutés.
-    enabledRoles: allChecked ? null : checked,
+    // Si tout est sélectionné on stocke null (= pas de restriction) plutôt
+    // qu'une liste complète, pour rester cohérent si de nouveaux rôles sont ajoutés.
+    enabledRoles: allSelected ? null : Array.from(selectedRoles),
     houseRules: el('house-rules').value,
   };
   saveSettings(settings);
-  const confirm = el('save-confirm');
-  confirm.hidden = false;
+  const confirmMsg = el('save-confirm');
+  confirmMsg.hidden = false;
   clearTimeout(persistForm._t);
-  persistForm._t = setTimeout(() => { confirm.hidden = true; }, 2000);
+  persistForm._t = setTimeout(() => { confirmMsg.hidden = true; }, 2000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -92,12 +89,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   el('save-settings').addEventListener('click', persistForm);
 
-  el('select-all-roles').addEventListener('click', () => setAllChecklist(true));
-  el('select-none-roles').addEventListener('click', () => setAllChecklist(false));
+  el('select-all-roles').addEventListener('click', () => {
+    selectedRoles = new Set(ROLES.map((r) => r.id));
+    renderGrids();
+  });
+
+  el('select-none-roles').addEventListener('click', () => {
+    selectedRoles = new Set();
+    renderGrids();
+  });
 
   el('reset-settings').addEventListener('click', () => {
     if (!confirm('Réinitialiser les paramètres de partie (rôles, règles maison) ?')) return;
     saveSettings(defaultSettings());
     loadIntoForm();
+  });
+
+  document.body.addEventListener('click', (e) => {
+    const card = e.target.closest('.role-card');
+    if (card) {
+      toggleRole(card.dataset.role);
+      return;
+    }
+    const tab = e.target.closest('.filter-tab');
+    if (tab) {
+      filterState[tab.dataset.filterTarget] = tab.dataset.filterValue;
+      renderFilterTabs('available-filter', 'available');
+      renderFilterTabs('selected-filter', 'selected');
+      renderGrids();
+    }
   });
 });

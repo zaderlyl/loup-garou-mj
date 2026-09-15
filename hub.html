@@ -29,13 +29,21 @@
   </div>
 
   <div class="panel">
-    <h3>🃏 Rôles autorisés dans cette partie</h3>
-    <p class="hint">Décoche les rôles que tu ne veux pas utiliser. Rien de décoché = tous les rôles sont disponibles.</p>
+    <h3>🃏 Rôles sélectionnés pour cette partie</h3>
+    <p class="hint">Clique sur une card pour la retirer de la partie.</p>
+    <div class="filter-tabs" id="selected-filter" data-target="selected"></div>
+    <div id="roles-selected" class="role-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h3>📚 Rôles disponibles</h3>
+    <p class="hint">Clique sur une card pour l'ajouter à la partie.</p>
+    <div class="filter-tabs" id="available-filter" data-target="available"></div>
     <div class="top-actions">
-      <button type="button" id="select-all-roles" class="btn small">Tout cocher</button>
-      <button type="button" id="select-none-roles" class="btn small ghost">Tout décocher</button>
+      <button type="button" id="select-all-roles" class="btn small">Tout sélectionner</button>
+      <button type="button" id="select-none-roles" class="btn small ghost">Tout retirer</button>
     </div>
-    <div id="roles-checklist"></div>
+    <div id="roles-available" class="role-grid"></div>
   </div>
 
   <div class="panel">
