@@ -152,7 +152,7 @@ function teamBadge(teamId) {
 
 function roleOptions(selectedId) {
   const groups = {};
-  ROLES.forEach((r) => {
+  getEnabledRoles(selectedId).forEach((r) => {
     groups[r.team] = groups[r.team] || [];
     groups[r.team].push(r);
   });

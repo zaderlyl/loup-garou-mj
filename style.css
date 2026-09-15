@@ -56,6 +56,12 @@ header p {
 .btn.ghost { background: transparent; }
 .btn:active { transform: scale(0.97); }
 
+a.btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .top-actions {
   display: flex;
   gap: 8px;
@@ -248,6 +254,47 @@ textarea { resize: vertical; min-height: 40px; }
   color: var(--text-muted);
   text-align: center;
   padding: 30px 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.field input,
+.field textarea {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 4px 0 10px;
+}
+
+#save-confirm {
+  color: var(--accent);
+}
+
+.role-group {
+  margin-bottom: 14px;
+}
+
+.role-group-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--team-color, var(--text-muted));
+  margin-bottom: 6px;
+}
+
+.role-check {
+  padding: 4px 0;
 }
 
 @media (max-width: 480px) {

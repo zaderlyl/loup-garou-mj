@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Hub — Paramètres de partie</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>⚙️ Hub — Paramètres de partie</h1>
+    <p>Configure la partie avant de lancer le panel MJ</p>
+  </header>
+
+  <div class="top-actions">
+    <a href="index.html" class="btn">← Retour au panel</a>
+  </div>
+
+  <div class="panel">
+    <h3>🎲 Partie</h3>
+    <label class="field">
+      Nom de la partie
+      <input id="game-name" type="text" placeholder="Ex : Soirée du 15 septembre">
+    </label>
+    <label class="field">
+      Nombre de joueurs attendus
+      <input id="expected-players" type="number" min="1" max="40" placeholder="Ex : 12">
+    </label>
+  </div>
+
+  <div class="panel">
+    <h3>🃏 Rôles autorisés dans cette partie</h3>
+    <p class="hint">Décoche les rôles que tu ne veux pas utiliser. Rien de décoché = tous les rôles sont disponibles.</p>
+    <div class="top-actions">
+      <button type="button" id="select-all-roles" class="btn small">Tout cocher</button>
+      <button type="button" id="select-none-roles" class="btn small ghost">Tout décocher</button>
+    </div>
+    <div id="roles-checklist"></div>
+  </div>
+
+  <div class="panel">
+    <h3>📝 Règles maison</h3>
+    <label class="field">
+      Notes / variantes personnalisées
+      <textarea id="house-rules" placeholder="Ex : le Cupidon peut se choisir lui-même, vote à main levée..."></textarea>
+    </label>
+  </div>
+
+  <div class="top-actions">
+    <button id="save-settings" class="btn">💾 Enregistrer les paramètres</button>
+    <button id="reset-settings" class="btn danger">Réinitialiser</button>
+  </div>
+  <p id="save-confirm" class="hint" hidden>Paramètres enregistrés.</p>
+
+  <script src="roles.js"></script>
+  <script src="settings.js"></script>
+  <script src="hub.js"></script>
+</body>
+</html>
