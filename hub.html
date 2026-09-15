@@ -28,21 +28,25 @@
       </label>
       <label class="field">
         Nombre de joueurs attendus
-        <input id="expected-players" type="number" min="1" max="40" step="1" placeholder="Ex : 12">
-        <span id="expected-players-error" class="field-error" hidden>Entre 1 et 40 joueurs, sans décimale.</span>
+        <input id="expected-players" type="number" min="6" max="40" step="1" placeholder="Ex : 12">
+        <span id="expected-players-error" class="field-error" hidden>Entre 6 et 40 joueurs, sans décimale.</span>
       </label>
+      <div class="preset-suggest" id="preset-suggest" hidden>
+        <p class="hint">Set recommandé pour <span id="preset-count"></span> joueurs : <span id="preset-summary"></span>.</p>
+        <button type="button" id="apply-preset" class="btn small">Appliquer ce set de rôles</button>
+      </div>
     </div>
 
     <div class="panel">
       <h3>🃏 Rôles sélectionnés pour cette partie</h3>
-      <p class="hint">Clique sur une card pour la retirer de la partie.</p>
+      <p class="hint">Clique sur une card pour la retirer de la partie. Maintiens-la pour voir le détail du rôle.</p>
       <div class="filter-tabs" id="selected-filter" data-target="selected"></div>
       <div id="roles-selected" class="role-grid"></div>
     </div>
 
     <div class="panel">
       <h3>📚 Rôles disponibles</h3>
-      <p class="hint">Clique sur une card pour l'ajouter à la partie.</p>
+      <p class="hint">Clique sur une card pour l'ajouter à la partie. Maintiens-la pour voir le détail du rôle.</p>
       <div class="filter-tabs" id="available-filter" data-target="available"></div>
       <div class="top-actions">
         <button type="button" id="select-all-roles" class="btn small">Tout sélectionner</button>
@@ -64,6 +68,19 @@
       <button id="reset-settings" class="btn danger">Réinitialiser</button>
     </div>
     <p id="save-confirm" class="hint" hidden>Paramètres enregistrés.</p>
+  </div>
+
+  <div id="role-detail-overlay" class="role-detail-overlay" hidden>
+    <div class="role-detail-card" style="--team-color:transparent">
+      <button type="button" id="role-detail-close" class="btn small ghost role-detail-close">✕</button>
+      <p id="role-detail-team" class="role-detail-team"></p>
+      <h3 id="role-detail-name" class="role-detail-name"></h3>
+      <p class="role-detail-label">Réveil</p>
+      <p id="role-detail-wake"></p>
+      <p class="role-detail-label">Pouvoir</p>
+      <p id="role-detail-desc"></p>
+      <div id="role-detail-trackers"></div>
+    </div>
   </div>
 
   <script src="roles.js"></script>

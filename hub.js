@@ -55,13 +55,100 @@ function renderGrids() {
   }
 }
 
+// Sets de rôles recommandés par tranche de nombre de joueurs, du plus
+// proche de la partie de base à la partie complète.
+// PROVISOIRE : composition à affiner plus tard, ceci n'est qu'un premier
+// jet pour que le mécanisme (suggestion + application) soit en place.
+// « Autre / Personnalisé » n'est jamais inclus automatiquement.
+const BASE_PRESET_ROLES = ['villageois', 'loup-garou', 'voyante', 'sorciere', 'chasseur', 'cupidon'];
+const MID_PRESET_ROLES = [...BASE_PRESET_ROLES, 'petite-fille', 'voleur', 'ancien', 'bouc-emissaire', 'gardien'];
+const LARGE_PRESET_ROLES = [...MID_PRESET_ROLES, 'idiot-du-village', 'ermite', 'capitaine-role', 'soeurs', 'freres'];
+const XLARGE_PRESET_ROLES = [...LARGE_PRESET_ROLES, 'loup-blanc', 'grand-mechant-loup', 'joueur-de-flute', 'ange'];
+const FULL_PRESET_ROLES = ROLES.filter((r) => r.id !== 'autre').map((r) => r.id);
+
+const ROLE_PRESETS = [
+  { maxPlayers: 8, roleIds: BASE_PRESET_ROLES },
+  { maxPlayers: 12, roleIds: MID_PRESET_ROLES },
+  { maxPlayers: 16, roleIds: LARGE_PRESET_ROLES },
+  { maxPlayers: 20, roleIds: XLARGE_PRESET_ROLES },
+  { maxPlayers: Infinity, roleIds: FULL_PRESET_ROLES },
+];
+
+function getPresetForPlayerCount(count) {
+  return ROLE_PRESETS.find((p) => count <= p.maxPlayers) || ROLE_PRESETS[ROLE_PRESETS.length - 1];
+}
+
+// Affiche (ou masque) la suggestion de set de rôles sous le champ
+// "nombre de joueurs attendus", en fonction de sa valeur actuelle.
+function updatePresetSuggestion() {
+  const raw = el('expected-players').value;
+  const valid = isExpectedPlayersValid(raw);
+  const suggest = el('preset-suggest');
+
+  if (!valid || raw === '') {
+    suggest.hidden = true;
+    return;
+  }
+
+  const count = Number(raw);
+  const preset = getPresetForPlayerCount(count);
+  el('preset-count').textContent = count;
+  el('preset-summary').textContent = `${preset.roleIds.length} rôles`;
+  suggest.hidden = false;
+}
+
+function applyPreset() {
+  const count = Number(el('expected-players').value);
+  const preset = getPresetForPlayerCount(count);
+  selectedRoles = new Set(preset.roleIds);
+  renderGrids();
+}
+
 function toggleRole(roleId) {
   if (selectedRoles.has(roleId)) selectedRoles.delete(roleId);
   else selectedRoles.add(roleId);
   renderGrids();
 }
 
-const EXPECTED_PLAYERS_MIN = 1;
+// ---------- Détail d'un rôle (appui long sur une card) ----------
+
+function showRoleDetail(roleId) {
+  const role = getRole(roleId);
+  if (!role) return;
+
+  const card = el('role-detail-overlay').querySelector('.role-detail-card');
+  card.style.setProperty('--team-color', TEAMS[role.team].color);
+
+  el('role-detail-team').textContent = TEAMS[role.team].label;
+  el('role-detail-name').textContent = role.name;
+  el('role-detail-wake').textContent = role.wake || '—';
+  el('role-detail-desc').textContent = role.desc;
+
+  el('role-detail-trackers').innerHTML = role.trackers && role.trackers.length
+    ? `<p class="role-detail-label">À suivre pendant la partie</p>
+       <ul class="role-detail-tracker-list">${role.trackers.map((t) => `<li>${t.label}</li>`).join('')}</ul>`
+    : '';
+
+  el('role-detail-overlay').hidden = false;
+}
+
+function hideRoleDetail() {
+  el('role-detail-overlay').hidden = true;
+}
+
+const LONG_PRESS_MS = 450;
+const LONG_PRESS_MOVE_TOLERANCE = 10;
+let longPressTimer = null;
+let longPressTriggered = false;
+let longPressStart = null;
+
+function cancelLongPress() {
+  clearTimeout(longPressTimer);
+  longPressTimer = null;
+  longPressStart = null;
+}
+
+const EXPECTED_PLAYERS_MIN = 6;
 const EXPECTED_PLAYERS_MAX = 40;
 
 // Valide en direct le champ "nombre de joueurs attendus" et affiche un
@@ -86,6 +173,7 @@ function loadIntoForm() {
   el('expected-players').value = settings.expectedPlayers || '';
   el('house-rules').value = settings.houseRules || '';
   validateExpectedPlayers();
+  updatePresetSuggestion();
   initSelection();
   renderFilterTabs('available-filter', 'available');
   renderFilterTabs('selected-filter', 'selected');
@@ -120,7 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   el('save-settings').addEventListener('click', persistForm);
 
-  el('expected-players').addEventListener('input', validateExpectedPlayers);
+  el('expected-players').addEventListener('input', () => {
+    validateExpectedPlayers();
+    updatePresetSuggestion();
+  });
+
+  el('apply-preset').addEventListener('click', applyPreset);
 
   el('select-all-roles').addEventListener('click', () => {
     selectedRoles = new Set(ROLES.map((r) => r.id));
@@ -141,6 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.addEventListener('click', (e) => {
     const card = e.target.closest('.role-card');
     if (card) {
+      // Un appui long vient de montrer le détail : ce clic (relâchement)
+      // ne doit pas en plus faire basculer la sélection du rôle.
+      if (longPressTriggered) {
+        longPressTriggered = false;
+        return;
+      }
       toggleRole(card.dataset.role);
       return;
     }
@@ -151,5 +250,35 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFilterTabs('selected-filter', 'selected');
       renderGrids();
     }
+  });
+
+  document.body.addEventListener('pointerdown', (e) => {
+    const card = e.target.closest('.role-card');
+    if (!card) return;
+    longPressTriggered = false;
+    longPressStart = { x: e.clientX, y: e.clientY };
+    longPressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      showRoleDetail(card.dataset.role);
+    }, LONG_PRESS_MS);
+  });
+
+  document.body.addEventListener('pointermove', (e) => {
+    if (!longPressStart) return;
+    const dx = e.clientX - longPressStart.x;
+    const dy = e.clientY - longPressStart.y;
+    if (Math.hypot(dx, dy) > LONG_PRESS_MOVE_TOLERANCE) cancelLongPress();
+  });
+
+  document.body.addEventListener('pointerup', cancelLongPress);
+  document.body.addEventListener('pointercancel', cancelLongPress);
+  document.body.addEventListener('scroll', cancelLongPress, true);
+
+  el('role-detail-close').addEventListener('click', hideRoleDetail);
+  el('role-detail-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'role-detail-overlay') hideRoleDetail();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideRoleDetail();
   });
 });

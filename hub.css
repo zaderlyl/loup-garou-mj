@@ -267,6 +267,32 @@ textarea { resize: vertical; min-height: 44px; }
   line-height: 1.4;
 }
 
+.preset-suggest[hidden] { display: none; }
+
+.preset-suggest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 2px dashed var(--panel-edge);
+  background: var(--panel-bg);
+}
+
+.preset-suggest .hint {
+  margin: 0;
+  flex: 1;
+  min-width: 140px;
+}
+
+.preset-suggest #preset-count,
+.preset-suggest #preset-summary {
+  color: var(--gold);
+  font-weight: 700;
+}
+
 #save-confirm {
   color: var(--teal);
   font-weight: 600;
@@ -408,4 +434,85 @@ textarea { resize: vertical; min-height: 44px; }
   border: 2px solid var(--red-dark);
   padding: 12px 14px;
   line-height: 1.5;
+}
+
+/* ---------- Détail d'un rôle (appui long) ---------- */
+
+.role-detail-overlay[hidden] { display: none; }
+
+.role-detail-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  padding: 16px;
+  background: rgba(10, 12, 18, 0.72);
+  z-index: 20;
+}
+
+.role-detail-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--panel-bg-alt);
+  border: 2px solid var(--panel-edge);
+  border-top: 5px solid var(--team-color, var(--panel-edge));
+  padding: 18px 16px 16px;
+  --pc: 8px;
+  clip-path: polygon(
+    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
+    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
+    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
+    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
+  );
+  box-shadow: 6px 6px 0 var(--panel-border);
+}
+
+.role-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 9px;
+}
+
+.role-detail-team {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+.role-detail-name {
+  font-size: 1.1rem;
+  color: var(--gold);
+  margin: 0 0 14px;
+  padding-right: 30px;
+  border-bottom: 1px dashed var(--panel-edge);
+  padding-bottom: 10px;
+}
+
+.role-detail-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 12px 0 4px;
+}
+
+#role-detail-wake,
+#role-detail-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.role-detail-tracker-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  line-height: 1.6;
 }

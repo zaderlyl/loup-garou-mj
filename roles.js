@@ -11,6 +11,9 @@
 //
 // `emoji` sert de repère visuel temporaire sur les cards du Hub, en attendant
 // une vraie illustration par rôle (idée future).
+//
+// `wake` décrit quand le rôle se réveille la nuit (utilisé dans le panneau
+// de détail affiché par appui long sur une card, côté Hub).
 
 const TEAMS = {
   village: { label: 'Village', color: '#2f9e6b' },
@@ -24,6 +27,7 @@ const ROLES = [
     name: 'Villageois',
     team: 'village',
     emoji: '🧑‍🌾',
+    wake: "Ne se réveille jamais : rôle passif.",
     desc: "Aucun pouvoir particulier. Vote le jour pour éliminer un suspect.",
   },
   {
@@ -31,6 +35,7 @@ const ROLES = [
     name: 'Loup-Garou',
     team: 'loups',
     emoji: '🐺',
+    wake: "Se réveille chaque nuit, avec les autres loups.",
     desc: "Se réunit avec les autres loups chaque nuit pour dévorer un villageois.",
   },
   {
@@ -38,6 +43,7 @@ const ROLES = [
     name: 'Voyante',
     team: 'village',
     emoji: '🔮',
+    wake: "Se réveille chaque nuit, seule.",
     desc: "Chaque nuit, découvre en secret le rôle d'un joueur de son choix.",
   },
   {
@@ -45,6 +51,7 @@ const ROLES = [
     name: 'Sorcière',
     team: 'village',
     emoji: '🧙‍♀️',
+    wake: "Se réveille chaque nuit, seule (peut choisir de ne rien faire).",
     desc: "Possède deux potions à usage unique : une de vie (sauve la victime des loups) et une de mort (élimine un joueur).",
     trackers: [
       { key: 'potionVie', label: 'Potion de vie utilisée', type: 'toggle' },
@@ -56,6 +63,7 @@ const ROLES = [
     name: 'Chasseur',
     team: 'village',
     emoji: '🏹',
+    wake: "Ne se réveille pas la nuit ; agit uniquement au moment de sa mort.",
     desc: "Quand il meurt (nuit ou jour), désigne immédiatement un joueur qui meurt avec lui.",
     trackers: [{ key: 'aTire', label: 'A désigné une victime en mourant', type: 'toggle' }],
   },
@@ -64,6 +72,7 @@ const ROLES = [
     name: 'Cupidon',
     team: 'village',
     emoji: '💘',
+    wake: "Se réveille une seule fois, la toute première nuit.",
     desc: "La première nuit, désigne deux joueurs qui deviennent amoureux (voir section « Amoureux » ci-dessous). Si l'un meurt, l'autre meurt de chagrin.",
   },
   {
@@ -71,6 +80,7 @@ const ROLES = [
     name: 'Petite Fille',
     team: 'village',
     emoji: '👧',
+    wake: "Reste éveillée pendant le tour des loups, à ses risques.",
     desc: "Peut espionner discrètement les loups pendant leur réveil, au risque de se faire repérer.",
     trackers: [{ key: 'espionne', label: 'A espionné les loups cette nuit', type: 'toggle' }],
   },
@@ -79,6 +89,7 @@ const ROLES = [
     name: 'Voleur',
     team: 'village',
     emoji: '🥷',
+    wake: "Se réveille une seule fois, avant même la première nuit.",
     desc: "Au tout début de la partie, peut échanger son rôle avec l'une des deux cartes restées de côté.",
     trackers: [{ key: 'aEchange', label: 'A échangé son rôle', type: 'toggle' }],
   },
@@ -87,6 +98,7 @@ const ROLES = [
     name: 'Ancien',
     team: 'village',
     emoji: '👴',
+    wake: "Ne se réveille jamais : pouvoir passif.",
     desc: "Survit à la première attaque des loups. S'il est éliminé par un vote du village, tous les villageois perdent leurs pouvoirs.",
     trackers: [{ key: 'aSurvecu', label: 'A survécu à une attaque de loups', type: 'toggle' }],
   },
@@ -95,6 +107,7 @@ const ROLES = [
     name: 'Bouc Émissaire',
     team: 'village',
     emoji: '🐐',
+    wake: "Ne se réveille jamais : pouvoir passif (déclenché par un vote).",
     desc: "En cas d'égalité de votes le jour, c'est lui qui est éliminé à la place d'un second tour.",
     trackers: [{ key: 'elimineEgalite', label: "Éliminé sur égalité de votes", type: 'toggle' }],
   },
@@ -103,6 +116,7 @@ const ROLES = [
     name: 'Gardien / Salvateur',
     team: 'village',
     emoji: '🛡️',
+    wake: "Se réveille chaque nuit, seul.",
     desc: "Chaque nuit, protège un joueur de son choix contre les loups (jamais le même deux nuits de suite).",
     trackers: [{ key: 'protection', label: 'Protège cette nuit', type: 'select-player' }],
   },
@@ -111,6 +125,7 @@ const ROLES = [
     name: 'Ange',
     team: 'solo',
     emoji: '👼',
+    wake: "Ne se réveille jamais : pouvoir passif (condition de victoire).",
     desc: "Gagne seul s'il est éliminé (vote ou nuit) avant la fin du deuxième tour de jeu. Sinon redevient simple villageois.",
     trackers: [
       { key: 'info', label: "Doit mourir avant la fin du tour 2 pour gagner seul", type: 'info' },
@@ -122,6 +137,7 @@ const ROLES = [
     name: 'Ermite',
     team: 'village',
     emoji: '🧎',
+    wake: "Ne se réveille jamais seul ; peut être réveillé une fois par le MJ.",
     desc: "Dort à l'écart du village. Peut être réveillé une seule fois par le MJ pour communiquer avec les loups ou consulter une carte.",
     trackers: [{ key: 'reveille', label: 'Déjà réveillé une fois', type: 'toggle' }],
   },
@@ -130,6 +146,7 @@ const ROLES = [
     name: 'Idiot du Village',
     team: 'village',
     emoji: '🤡',
+    wake: "Ne se réveille jamais : pouvoir passif (déclenché par un vote).",
     desc: "S'il est éliminé par un vote du village, il révèle son rôle et survit — mais perd définitivement son droit de vote.",
     trackers: [{ key: 'immuniteUtilisee', label: 'Immunité utilisée (grillé mais vivant)', type: 'toggle' }],
   },
@@ -138,6 +155,7 @@ const ROLES = [
     name: 'Joueur de Flûte',
     team: 'solo',
     emoji: '🎶',
+    wake: "Se réveille chaque nuit, seul.",
     desc: "Chaque nuit, charme deux joueurs. Gagne seul quand tous les joueurs encore en vie sont charmés.",
     trackers: [{ key: 'charmes', label: 'Joueurs charmés', type: 'multiselect-players' }],
   },
@@ -146,6 +164,7 @@ const ROLES = [
     name: 'Loup Blanc',
     team: 'loups',
     emoji: '🐾',
+    wake: "Se réveille avec les loups chaque nuit, puis seul une nuit sur deux.",
     desc: "Loup solitaire : vote avec les loups la nuit, mais peut aussi tuer un autre loup une nuit sur deux. Doit être l'unique survivant pour gagner.",
     trackers: [{ key: 'tueUnLoup', label: 'A tué un loup cette nuit (1 nuit sur 2)', type: 'toggle' }],
   },
@@ -154,6 +173,7 @@ const ROLES = [
     name: 'Grand Méchant Loup',
     team: 'loups',
     emoji: '💀',
+    wake: "Se réveille avec les autres loups, chaque nuit.",
     desc: "Tant qu'aucun loup n'est mort, peut dévorer une seconde victime en plus de celle des loups.",
     trackers: [{ key: 'peutDoubler', label: "Pouvoir actif (aucun loup mort)", type: 'toggle' }],
   },
@@ -162,6 +182,7 @@ const ROLES = [
     name: 'Les Sœurs',
     team: 'village',
     emoji: '👭',
+    wake: "Se réveillent ensemble, la toute première nuit uniquement.",
     desc: "Se reconnaissent entre elles dès la première nuit.",
   },
   {
@@ -169,6 +190,7 @@ const ROLES = [
     name: 'Les Frères',
     team: 'village',
     emoji: '👬',
+    wake: "Se réveillent ensemble, la toute première nuit uniquement.",
     desc: "Se reconnaissent entre eux dès la première nuit.",
   },
   {
@@ -176,6 +198,7 @@ const ROLES = [
     name: 'Corbeau',
     team: 'village',
     emoji: '🐦‍⬛',
+    wake: "Se réveille chaque nuit, seul.",
     desc: "Chaque nuit, désigne secrètement un joueur qui recevra deux voix contre lui au vote du lendemain.",
     trackers: [{ key: 'cible', label: 'Cible désignée pour le vote du lendemain', type: 'select-player' }],
   },
@@ -184,6 +207,7 @@ const ROLES = [
     name: 'Autre / Personnalisé',
     team: 'village',
     emoji: '❓',
+    wake: "À définir selon le rôle personnalisé.",
     desc: "Rôle non listé : utilisez le champ de notes du joueur pour décrire son pouvoir et suivre son état.",
   },
 ];
