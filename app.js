@@ -4,19 +4,32 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    console.warn('État corrompu, réinitialisation.', e);
-  }
+function defaultState() {
   return {
     players: [],
     lovers: [null, null],
     captainId: null,
-    nightCount: 0,
+    // type: 'night' | 'day' ; night: numéro de la nuit en cours ;
+    // stepIndex : position dans les étapes de la nuit (voir NIGHT_ORDER).
+    phase: { type: 'night', night: 1, stepIndex: 0 },
   };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const state = JSON.parse(raw);
+      // Migration douce depuis l'ancien compteur "nightCount" simple.
+      if (!state.phase) {
+        state.phase = { type: 'night', night: Math.max(1, state.nightCount || 1), stepIndex: 0 };
+      }
+      return state;
+    }
+  } catch (e) {
+    console.warn('État corrompu, réinitialisation.', e);
+  }
+  return defaultState();
 }
 
 let state = loadState();
@@ -128,15 +141,60 @@ function setCaptain(playerId) {
   render();
 }
 
-function bumpNight(delta) {
-  state.nightCount = Math.max(0, state.nightCount + delta);
+// Ordre de réveil habituel du Loup-Garou de Thiercelieux. `firstNightOnly`
+// signale un rôle qui n'agit que la toute première nuit. Seuls les rôles
+// effectivement distribués à un joueur apparaissent dans le déroulé.
+const NIGHT_ORDER = [
+  { roleId: 'cupidon', label: 'Cupidon', firstNightOnly: true },
+  { roleId: 'voleur', label: 'Voleur', firstNightOnly: true },
+  { roleId: 'soeurs', label: 'Les Sœurs', firstNightOnly: true },
+  { roleId: 'freres', label: 'Les Frères', firstNightOnly: true },
+  { roleId: 'voyante', label: 'Voyante' },
+  { roleId: 'loup-garou', label: 'Loups-Garous' },
+  { roleId: 'loup-blanc', label: 'Loup Blanc' },
+  { roleId: 'grand-mechant-loup', label: 'Grand Méchant Loup' },
+  { roleId: 'petite-fille', label: 'Petite Fille' },
+  { roleId: 'sorciere', label: 'Sorcière' },
+  { roleId: 'gardien', label: 'Gardien / Salvateur' },
+  { roleId: 'joueur-de-flute', label: 'Joueur de Flûte' },
+  { roleId: 'capitaine-role', label: 'Corbeau' },
+];
+
+function getActiveNightSteps(night) {
+  const assignedRoleIds = new Set(state.players.map((p) => p.roleId).filter(Boolean));
+  return NIGHT_ORDER.filter((step) => assignedRoleIds.has(step.roleId) && (!step.firstNightOnly || night === 1));
+}
+
+function advancePhase() {
+  const { phase } = state;
+  if (phase.type === 'night') {
+    const steps = getActiveNightSteps(phase.night);
+    if (phase.stepIndex < steps.length - 1) phase.stepIndex++;
+    else state.phase = { type: 'day', night: phase.night, stepIndex: 0 };
+  } else {
+    state.phase = { type: 'night', night: phase.night + 1, stepIndex: 0 };
+  }
+  saveState();
+  render();
+}
+
+function retreatPhase() {
+  const { phase } = state;
+  if (phase.type === 'day') {
+    const steps = getActiveNightSteps(phase.night);
+    state.phase = { type: 'night', night: phase.night, stepIndex: Math.max(0, steps.length - 1) };
+  } else if (phase.stepIndex > 0) {
+    phase.stepIndex--;
+  } else if (phase.night > 1) {
+    state.phase = { type: 'day', night: phase.night - 1, stepIndex: 0 };
+  }
   saveState();
   render();
 }
 
 function resetGame() {
   if (!confirm('Réinitialiser complètement la partie (joueurs, rôles, historique) ?')) return;
-  state = { players: [], lovers: [null, null], captainId: null, nightCount: 0 };
+  state = defaultState();
   saveState();
   render();
 }
@@ -230,24 +288,31 @@ function renderPlayerCard(player) {
 
   const trackersHtml = role && role.trackers ? role.trackers.map((t) => renderTracker(player, t)).join('') : '';
 
+  const statusIcons = [
+    !player.alive ? '<span title="Mort">💀</span>' : '',
+    isLover ? '<span title="Amoureux">💘</span>' : '',
+    isCaptain ? '<span title="Capitaine">👑</span>' : '',
+  ].join('');
+
   return `
-    <div class="card ${deadClass}" style="--team-color:${teamColor}">
-      <div class="card-head">
-        <div class="card-title">
+    <div class="player-row ${deadClass}" style="--team-color:${teamColor}">
+      <div class="player-row-head">
+        <div class="player-avatar">${player.name.charAt(0).toUpperCase()}</div>
+        <div class="player-role-icon">${role ? role.emoji : '❔'}</div>
+        <div class="player-name-col">
           <span class="player-name">${player.name}</span>
-          ${isLover ? '<span title="Amoureux">💘</span>' : ''}
-          ${isCaptain ? '<span title="Capitaine">👑</span>' : ''}
-          ${!player.alive ? '<span class="tag-dead">MORT</span>' : ''}
+          <span class="player-role-name">${role ? role.name : 'Sans rôle'}</span>
         </div>
-        <div class="card-actions">
-          <button data-action="toggle-alive" data-player="${player.id}" class="btn small ${player.alive ? 'danger' : 'ghost'}">
-            ${player.alive ? '☠️ Éliminer' : '↩️ Ressusciter'}
+        <div class="player-status-icons">${statusIcons}</div>
+        <div class="player-row-actions">
+          <button data-action="toggle-alive" data-player="${player.id}" class="btn icon ${player.alive ? 'danger' : 'ghost'}" title="${player.alive ? 'Éliminer' : 'Ressusciter'}">
+            ${player.alive ? '☠️' : '↩️'}
           </button>
-          <button data-action="remove-player" data-player="${player.id}" class="btn small ghost">✕</button>
+          <button data-action="remove-player" data-player="${player.id}" class="btn icon ghost" title="Retirer">✕</button>
         </div>
       </div>
 
-      <div class="card-body">
+      <div class="player-row-body">
         <label class="role-select">
           Rôle
           <select data-action="set-role" data-player="${player.id}">
@@ -264,29 +329,37 @@ function renderPlayerCard(player) {
     </div>`;
 }
 
-function renderSummary() {
+function renderStatBar() {
   const alive = state.players.filter((p) => p.alive);
   const dead = state.players.filter((p) => !p.alive);
-  const counts = { village: 0, loups: 0, solo: 0, sans_role: 0 };
-  alive.forEach((p) => {
-    const role = getRole(p.roleId);
-    if (role) counts[role.team]++;
-    else counts.sans_role++;
-  });
 
   return `
-    <div class="summary">
-      <div class="summary-row">
-        <div class="stat"><span class="stat-num">${state.players.length}</span><span>Joueurs</span></div>
-        <div class="stat"><span class="stat-num">${alive.length}</span><span>Vivants</span></div>
-        <div class="stat"><span class="stat-num">${dead.length}</span><span>Morts</span></div>
+    <div class="stat-bar">
+      <div class="stat"><span class="stat-num">${state.phase.night}</span><span class="stat-label">🌙 Nuit</span></div>
+      <div class="stat"><span class="stat-num deaths">${dead.length}</span><span class="stat-label">💀 Morts</span></div>
+      <div class="stat"><span class="stat-num alive">${alive.length}</span><span class="stat-label">❤️ Vivants</span></div>
+    </div>
+    ${dead.length ? `<div class="dead-list"><strong>Éliminés :</strong> ${dead.map((p) => `${p.name}${getRole(p.roleId) ? ' (' + getRole(p.roleId).name + ')' : ''}`).join(', ')}</div>` : ''}`;
+}
+
+function renderPhaseBanner() {
+  const { phase } = state;
+  let label;
+  if (phase.type === 'day') {
+    label = `☀️ Jour ${phase.night} — Débats et vote`;
+  } else {
+    const steps = getActiveNightSteps(phase.night);
+    const step = steps[phase.stepIndex];
+    label = step ? `🌙 Nuit ${phase.night} — Tour : ${step.label}` : `🌙 Nuit ${phase.night}`;
+  }
+
+  return `
+    <div class="phase-banner ${phase.type === 'day' ? 'is-day' : 'is-night'}">
+      <span class="phase-label">${label}</span>
+      <div class="phase-nav">
+        <button type="button" data-action="phase-prev" class="btn small ghost" title="Étape précédente">◀</button>
+        <button type="button" data-action="phase-next" class="btn small" title="Étape suivante">▶</button>
       </div>
-      <div class="summary-row teams">
-        <div class="stat" style="--team-color:${TEAMS.village.color}"><span class="stat-num">${counts.village}</span><span>Village</span></div>
-        <div class="stat" style="--team-color:${TEAMS.loups.color}"><span class="stat-num">${counts.loups}</span><span>Loups</span></div>
-        <div class="stat" style="--team-color:${TEAMS.solo.color}"><span class="stat-num">${counts.solo}</span><span>Solo</span></div>
-      </div>
-      ${dead.length ? `<div class="dead-list"><strong>Éliminés :</strong> ${dead.map((p) => `${p.name}${getRole(p.roleId) ? ' (' + getRole(p.roleId).name + ')' : ''}`).join(', ')}</div>` : ''}
     </div>`;
 }
 
@@ -302,19 +375,12 @@ function renderLoversAndCaptain() {
     <div class="panel">
       <h3>👑 Capitaine</h3>
       <select data-action="set-captain">${playerOptions(state.captainId)}</select>
-    </div>
-    <div class="panel">
-      <h3>🌙 Tour de jeu</h3>
-      <div class="row night-counter">
-        <button class="btn small" data-action="night-minus">−</button>
-        <span class="night-value">${state.nightCount}</span>
-        <button class="btn small" data-action="night-plus">+</button>
-      </div>
     </div>`;
 }
 
 function render() {
-  el('summary').innerHTML = renderSummary();
+  el('stat-bar').innerHTML = renderStatBar();
+  el('phase-banner').innerHTML = renderPhaseBanner();
   el('side-panels').innerHTML = renderLoversAndCaptain();
   el('players').innerHTML = state.players.length
     ? state.players.map(renderPlayerCard).join('')
@@ -343,8 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (action === 'toggle-alive') toggleAlive(t.dataset.player);
     if (action === 'remove-player') removePlayer(t.dataset.player);
     if (action === 'toggle-multiselect') toggleMultiselect(t.dataset.player, t.dataset.key, t.dataset.target);
-    if (action === 'night-plus') bumpNight(1);
-    if (action === 'night-minus') bumpNight(-1);
+    if (action === 'phase-next') advancePhase();
+    if (action === 'phase-prev') retreatPhase();
   });
 
   document.body.addEventListener('change', (e) => {
