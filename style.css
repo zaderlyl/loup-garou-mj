@@ -313,10 +313,9 @@ textarea { resize: vertical; min-height: 40px; }
 
 .role-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  min-height: 64px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-top: 3px solid var(--team-color, var(--border));
@@ -336,14 +335,9 @@ textarea { resize: vertical; min-height: 40px; }
   background: color-mix(in srgb, var(--team-color, var(--accent)) 16%, var(--bg));
 }
 
-.role-card-art {
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
 .role-card-name {
-  font-size: 0.72rem;
-  line-height: 1.2;
+  font-size: 0.78rem;
+  line-height: 1.25;
 }
 
 .empty.small {

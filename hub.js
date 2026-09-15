@@ -27,12 +27,10 @@ function renderFilterTabs(containerId, target) {
   el(containerId).innerHTML = html;
 }
 
-// `emoji` fait office d'illustration temporaire (idée future : remplacer par
-// une vraie image par rôle).
+// Texte seul pour le moment (idée future : illustration par rôle, cf. `emoji` dans roles.js).
 function roleCard(role, selected) {
   return `
     <button type="button" class="role-card ${selected ? 'selected' : ''}" data-role="${role.id}" style="--team-color:${TEAMS[role.team].color}" title="${role.desc}">
-      <span class="role-card-art">${role.emoji || '🎭'}</span>
       <span class="role-card-name">${role.name}</span>
     </button>`;
 }
