@@ -8,6 +8,14 @@
 //  - select-player     : le MJ choisit un joueur vivant (ex : cible protégée cette nuit)
 //                        -> un historique des choix précédents est conservé automatiquement
 //  - multiselect-players : ensemble de joueurs (ex : joueurs charmés par le joueur de flûte)
+//  - swap-role          : le MJ choisit un joueur et les deux rôles s'inversent
+//                        (ex : le Voleur échange son rôle ; il ne peut pas se choisir lui-même)
+//
+// `lethal: true` sur un tracker select-player signifie que désigner une
+// cible l'élimine directement (ex : potion de mort de la Sorcière, tir du
+// Chasseur, victime du Loup Blanc) — panel.html : côté panel, taper
+// directement sur la cible pendant le tour du rôle déclenche l'action avec
+// une seule popup de validation, sans passer par la fiche complète.
 //
 // `emoji` sert de repère visuel temporaire sur les cards du Hub, en attendant
 // une vraie illustration par rôle (idée future).
@@ -45,6 +53,7 @@ const ROLES = [
     emoji: '🔮',
     wake: "Se réveille chaque nuit, seule.",
     desc: "Chaque nuit, découvre en secret le rôle d'un joueur de son choix.",
+    trackers: [{ key: 'sondage', label: 'Sonder...', type: 'select-player' }],
   },
   {
     id: 'sorciere',
@@ -55,7 +64,7 @@ const ROLES = [
     desc: "Possède deux potions à usage unique : une de vie (sauve la victime des loups) et une de mort (élimine un joueur).",
     trackers: [
       { key: 'potionVie', label: 'Potion de vie utilisée', type: 'toggle' },
-      { key: 'potionMort', label: 'Potion de mort utilisée', type: 'toggle' },
+      { key: 'potionMort', label: 'Potion de mort (cible)', type: 'select-player', lethal: true },
     ],
   },
   {
@@ -65,7 +74,7 @@ const ROLES = [
     emoji: '🏹',
     wake: "Ne se réveille pas la nuit ; agit uniquement au moment de sa mort.",
     desc: "Quand il meurt (nuit ou jour), désigne immédiatement un joueur qui meurt avec lui.",
-    trackers: [{ key: 'aTire', label: 'A désigné une victime en mourant', type: 'toggle' }],
+    trackers: [{ key: 'victime', label: 'Tire sur...', type: 'select-player', lethal: true }],
   },
   {
     id: 'cupidon',
@@ -91,7 +100,7 @@ const ROLES = [
     emoji: '🥷',
     wake: "Se réveille une seule fois, avant même la première nuit.",
     desc: "Au tout début de la partie, peut échanger son rôle avec l'une des deux cartes restées de côté.",
-    trackers: [{ key: 'aEchange', label: 'A échangé son rôle', type: 'toggle' }],
+    trackers: [{ key: 'echange', label: 'Échanger son rôle avec...', type: 'swap-role' }],
   },
   {
     id: 'ancien',
@@ -166,7 +175,7 @@ const ROLES = [
     emoji: '🐾',
     wake: "Se réveille avec les loups chaque nuit, puis seul une nuit sur deux.",
     desc: "Loup solitaire : vote avec les loups la nuit, mais peut aussi tuer un autre loup une nuit sur deux. Doit être l'unique survivant pour gagner.",
-    trackers: [{ key: 'tueUnLoup', label: 'A tué un loup cette nuit (1 nuit sur 2)', type: 'toggle' }],
+    trackers: [{ key: 'victime', label: 'Tue un loup...', type: 'select-player', lethal: true }],
   },
   {
     id: 'grand-mechant-loup',
@@ -175,7 +184,10 @@ const ROLES = [
     emoji: '💀',
     wake: "Se réveille avec les autres loups, chaque nuit.",
     desc: "Tant qu'aucun loup n'est mort, peut dévorer une seconde victime en plus de celle des loups.",
-    trackers: [{ key: 'peutDoubler', label: "Pouvoir actif (aucun loup mort)", type: 'toggle' }],
+    trackers: [
+      { key: 'peutDoubler', label: 'Pouvoir actif (aucun loup mort)', type: 'toggle' },
+      { key: 'secondeVictime', label: 'Dévore une seconde victime...', type: 'select-player', lethal: true },
+    ],
   },
   {
     id: 'soeurs',

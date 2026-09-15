@@ -22,6 +22,7 @@
       <button id="reset-game" class="btn danger small">🔄 Nouvelle partie</button>
     </div>
 
+    <div id="game-status-bar"></div>
     <div id="stat-bar"></div>
     <div id="phase-banner"></div>
 
@@ -33,6 +34,13 @@
     <div id="side-panels"></div>
 
     <div id="players"></div>
+  </div>
+
+  <div id="player-detail-overlay" class="role-detail-overlay" hidden>
+    <div class="role-detail-card" style="--team-color:transparent">
+      <button type="button" id="player-detail-close" class="btn small ghost role-detail-close">✕</button>
+      <div id="player-detail-body"></div>
+    </div>
   </div>
 
   <script src="roles.js"></script>
