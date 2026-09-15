@@ -54,11 +54,31 @@ function toggleRole(roleId) {
   renderGrids();
 }
 
+const EXPECTED_PLAYERS_MIN = 1;
+const EXPECTED_PLAYERS_MAX = 40;
+
+// Valide en direct le champ "nombre de joueurs attendus" et affiche un
+// retour visuel (bordure + message) si la valeur est vide de sens.
+function isExpectedPlayersValid(rawValue) {
+  if (rawValue === '') return true;
+  const num = Number(rawValue);
+  return Number.isInteger(num) && num >= EXPECTED_PLAYERS_MIN && num <= EXPECTED_PLAYERS_MAX;
+}
+
+function validateExpectedPlayers() {
+  const input = el('expected-players');
+  const valid = isExpectedPlayersValid(input.value);
+  input.classList.toggle('invalid', !valid);
+  el('expected-players-error').hidden = valid;
+  return valid;
+}
+
 function loadIntoForm() {
   const settings = loadSettings();
   el('game-name').value = settings.gameName || '';
   el('expected-players').value = settings.expectedPlayers || '';
   el('house-rules').value = settings.houseRules || '';
+  validateExpectedPlayers();
   initSelection();
   renderFilterTabs('available-filter', 'available');
   renderFilterTabs('selected-filter', 'selected');
@@ -67,9 +87,15 @@ function loadIntoForm() {
 
 function persistForm() {
   const allSelected = selectedRoles.size === ROLES.length;
+  const expectedPlayersRaw = el('expected-players').value;
+  const expectedPlayersValid = validateExpectedPlayers();
   const settings = {
     gameName: el('game-name').value.trim(),
-    expectedPlayers: el('expected-players').value ? Number(el('expected-players').value) : null,
+    // Si la valeur est absurde, on garde l'ancienne plutôt que d'enregistrer
+    // n'importe quoi : le champ reste signalé en erreur à l'écran.
+    expectedPlayers: expectedPlayersValid
+      ? (expectedPlayersRaw ? Number(expectedPlayersRaw) : null)
+      : loadSettings().expectedPlayers,
     // Si tout est sélectionné on stocke null (= pas de restriction) plutôt
     // qu'une liste complète, pour rester cohérent si de nouveaux rôles sont ajoutés.
     enabledRoles: allSelected ? null : Array.from(selectedRoles),
@@ -86,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadIntoForm();
 
   el('save-settings').addEventListener('click', persistForm);
+
+  el('expected-players').addEventListener('input', validateExpectedPlayers);
 
   el('select-all-roles').addEventListener('click', () => {
     selectedRoles = new Set(ROLES.map((r) => r.id));

@@ -28,7 +28,8 @@
       </label>
       <label class="field">
         Nombre de joueurs attendus
-        <input id="expected-players" type="number" min="1" max="40" placeholder="Ex : 12">
+        <input id="expected-players" type="number" min="1" max="40" step="1" placeholder="Ex : 12">
+        <span id="expected-players-error" class="field-error" hidden>Entre 1 et 40 joueurs, sans décimale.</span>
       </label>
     </div>
 
