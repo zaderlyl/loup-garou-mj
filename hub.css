@@ -399,3 +399,13 @@ textarea { resize: vertical; min-height: 44px; }
 }
 
 .empty.small { grid-column: 1 / -1; }
+
+.empty.warning {
+  color: var(--red);
+  text-align: left;
+  font-weight: 700;
+  background: var(--panel-bg);
+  border: 2px solid var(--red-dark);
+  padding: 12px 14px;
+  line-height: 1.5;
+}

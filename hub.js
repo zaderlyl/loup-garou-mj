@@ -43,9 +43,16 @@ function renderGrids() {
     ? availableRoles.map((r) => roleCard(r, false)).join('')
     : '<p class="empty small">Aucun rôle dans ce camp.</p>';
 
-  el('roles-selected').innerHTML = selected.length
-    ? selected.map((r) => roleCard(r, true)).join('')
-    : '<p class="empty small">Aucun rôle sélectionné.</p>';
+  if (selected.length) {
+    el('roles-selected').innerHTML = selected.map((r) => roleCard(r, true)).join('');
+  } else if (selectedRoles.size === 0) {
+    // Liste entièrement vide, pas juste filtrée : la partie ne peut pas
+    // démarrer sans rôle. Message d'alerte plutôt que le texte discret habituel.
+    el('roles-selected').innerHTML =
+      '<p class="empty small warning">⚠ Aucun rôle sélectionné — le panel MJ n\'aura rien à proposer. Ajoute au moins un Loup-Garou et un Villageois avant de lancer la partie.</p>';
+  } else {
+    el('roles-selected').innerHTML = '<p class="empty small">Aucun rôle sélectionné dans ce camp.</p>';
+  }
 }
 
 function toggleRole(roleId) {
