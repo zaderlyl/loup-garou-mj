@@ -271,7 +271,7 @@ textarea { resize: vertical; min-height: 40px; }
 
 select:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ---------- Table de joueurs ---------- */
+/* ---------- Cartes de joueurs ---------- */
 
 .empty {
   color: var(--text-muted);
@@ -280,88 +280,102 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 0.85rem;
 }
 
-.table-scroll {
-  overflow-x: auto;
-  border: 2px solid var(--panel-edge);
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
 }
 
-.player-table {
+.player-card {
+  display: block;
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.player-table th,
-.player-table td {
-  border: 1px solid var(--panel-edge);
-  padding: 5px 7px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.player-table thead th {
-  background: var(--panel-bg-alt);
-  color: var(--gold);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-}
-
-.player-table tbody tr {
+  text-align: left;
+  font-family: inherit;
   background: var(--panel-bg);
+  border: 1.5px solid var(--panel-edge);
+  border-left: 3px solid var(--team-color, var(--panel-edge));
+  border-radius: 12px;
+  padding: 10px 12px;
   cursor: pointer;
-  border-left: 4px solid var(--team-color, var(--panel-edge));
-  transition: background 0.08s ease, outline-color 0.08s ease;
-  outline: 1px solid transparent;
-  outline-offset: -1px;
+  transition: background 0.08s ease, border-color 0.08s ease, transform 0.08s ease;
 }
 
-.player-table tbody tr:hover { background: var(--panel-edge); }
-.player-table tbody tr:active { outline-color: var(--gold); }
-.player-table tbody tr.dead { opacity: 0.45; }
+.player-card:hover { background: var(--panel-bg-alt); }
+.player-card:active { transform: scale(0.99); }
 
-.player-table tbody tr.night-actor { opacity: 0.4; }
+.player-card:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.player-card.dead { opacity: 0.45; }
+.player-card.night-actor { opacity: 0.4; }
+
+.player-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .player-avatar {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--team-color, var(--panel-edge));
   color: var(--panel-border);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border: 2px solid var(--panel-border);
-  margin: 0 auto;
+  border-radius: 50%;
 }
 
-.col-role-icon { font-size: 1.05rem; }
+.player-card-info {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
 
-.cell-tag {
+.player-card-name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-card-role {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.player-card-tag {
   display: inline-block;
   font-size: 0.6rem;
   font-weight: 700;
   color: var(--tag-color, var(--text-muted));
   border: 1px solid var(--tag-color, var(--panel-edge));
+  border-radius: 4px;
   padding: 1px 5px;
+  margin-left: 4px;
 }
 
-.col-name {
-  font-weight: 700;
-  color: var(--text);
-  text-align: left;
-}
+.player-card-life { font-size: 0.95rem; flex-shrink: 0; }
 
-.cell-icon { font-size: 0.9rem; }
-.cell-icon.muted { opacity: 0.25; filter: grayscale(1); }
-.cell-icon.dead { filter: none; }
-
-.col-badges {
+.player-card-badges {
+  display: block;
+  margin-top: 8px;
   font-size: 0.85rem;
-  letter-spacing: 0;
-  white-space: nowrap;
+  letter-spacing: 2px;
 }
 
 .role-select, .notes {

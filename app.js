@@ -456,7 +456,7 @@ function handleNightTargetTap(targetId) {
 // mort / bande de badges (pins collés, sans séparation, selon les facteurs
 // en cours : amoureux, capitaine, pouvoir épuisé, sans rôle...). Le détail
 // complet (rôle, pouvoirs, notes, actions) s'ouvre au clic sur la ligne.
-function renderPlayerRow(player, activeRoleId) {
+function renderPlayerCard(player, activeRoleId) {
   const role = getRole(player.roleId);
   const teamColor = role ? TEAMS[role.team].color : '#5a6280';
   const isLover = state.lovers.includes(player.id);
@@ -473,17 +473,23 @@ function renderPlayerRow(player, activeRoleId) {
   // Pendant le tour d'un rôle, le(s) joueur(s) qui le détiennent sont
   // grisés (l'attention du MJ doit aller vers la cible, pas vers l'acteur).
   const isNightActor = activeRoleId && player.roleId === activeRoleId;
-  const rowClass = [player.alive ? '' : 'dead', isNightActor ? 'night-actor' : ''].filter(Boolean).join(' ');
+  const cardClass = ['player-card', player.alive ? '' : 'dead', isNightActor ? 'night-actor' : ''].filter(Boolean).join(' ');
 
   return `
-    <tr class="${rowClass}" style="--team-color:${teamColor}" data-action="open-player" data-player="${player.id}">
-      <td class="col-avatar"><div class="player-avatar">${player.name.charAt(0).toUpperCase()}</div></td>
-      <td class="col-role-icon" title="${role ? role.name : 'Sans rôle'}">${role ? role.emoji : '❔'}</td>
-      <td class="col-team"><span class="cell-tag" style="--tag-color:${teamColor}">${role ? TEAM_SHORT[role.team] : '—'}</span></td>
-      <td class="col-name">${player.name}</td>
-      <td class="col-icon">${player.alive ? '<span class="cell-icon alive">❤</span>' : '<span class="cell-icon dead">💀</span>'}</td>
-      <td class="col-badges">${badges}</td>
-    </tr>`;
+    <button type="button" class="${cardClass}" style="--team-color:${teamColor}" data-action="open-player" data-player="${player.id}">
+      <span class="player-card-head">
+        <span class="player-avatar">${player.name.charAt(0).toUpperCase()}</span>
+        <span class="player-card-info">
+          <span class="player-card-name">${player.name}</span>
+          <span class="player-card-role">
+            ${role ? `${role.emoji} ${role.name}` : '❔ Sans rôle'}
+            <span class="player-card-tag" style="--tag-color:${teamColor}">${role ? TEAM_SHORT[role.team] : '—'}</span>
+          </span>
+        </span>
+        <span class="player-card-life">${player.alive ? '❤' : '💀'}</span>
+      </span>
+      ${badges ? `<span class="player-card-badges">${badges}</span>` : ''}
+    </button>`;
 }
 
 // Contenu de la fenêtre de détail ouverte au clic sur une ligne.
@@ -625,16 +631,7 @@ function render() {
   el('phase-banner').innerHTML = renderPhaseBanner();
   el('side-panels').innerHTML = renderLoversAndCaptain();
   el('players').innerHTML = state.players.length
-    ? `<div class="table-scroll">
-        <table class="player-table">
-          <thead>
-            <tr>
-              <th></th><th>Rôle</th><th>Camp</th><th>Nom</th><th></th><th></th>
-            </tr>
-          </thead>
-          <tbody>${state.players.map((p) => renderPlayerRow(p, getActivePhaseRoleId())).join('')}</tbody>
-        </table>
-      </div>`
+    ? `<div class="player-grid">${state.players.map((p) => renderPlayerCard(p, getActivePhaseRoleId())).join('')}</div>`
     : '<p class="empty">Ajoutez des joueurs ci-dessus pour commencer.</p>';
 }
 
