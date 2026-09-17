@@ -463,7 +463,14 @@ function getActivePhaseRoleId() {
   return step ? step.roleId : null;
 }
 
-const WOLF_ROLE_IDS = ['loup-garou', 'loup-blanc', 'grand-mechant-loup'];
+// Seul le tour « Loups-Garous » regroupe plusieurs joueurs qui décident
+// ensemble d'une victime : c'est le seul cas où le message générique
+// « les loups éliminent... » a du sens. Le Loup Blanc et le Grand Méchant
+// Loup ont chacun leur propre étape dans NIGHT_ORDER avec leur propre
+// tracker (victime / secondeVictime) : avant, ils étaient inclus ici par
+// erreur, ce qui empêchait leur pouvoir spécifique de s'enregistrer — le
+// tap déclenchait le message générique des loups au lieu de leur tracker.
+const PACK_KILL_ROLE_ID = 'loup-garou';
 
 // Appuyer directement sur la cible pendant le tour d'un rôle déclenche son
 // effet, avec une seule popup de validation — pas besoin d'ouvrir la fiche
@@ -476,7 +483,7 @@ function handleNightTargetTap(targetId) {
   const target = getPlayer(targetId);
   if (!target || target.roleId === activeRoleId) return false; // on tape l'acteur lui-même -> fiche normale
 
-  if (WOLF_ROLE_IDS.includes(activeRoleId)) {
+  if (activeRoleId === PACK_KILL_ROLE_ID) {
     if (!target.alive) return false;
     askConfirm(`Les loups éliminent ${target.name} ?`).then((ok) => { if (ok) toggleAlive(target.id); });
     return true;
