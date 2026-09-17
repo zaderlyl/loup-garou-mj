@@ -101,28 +101,35 @@ function shuffle(list) {
 
 function fillTestPlayers() {
   if (state.status !== 'setup') return;
-  if (state.players.length && !confirm('Remplacer les joueurs actuels par un jeu de test genere au hasard ?')) return;
 
-  const settings = loadSettings();
-  const count = Math.min(TEST_NAMES.length, Math.max(4, settings.expectedPlayers || 10));
-  const names = shuffle(TEST_NAMES).slice(0, count);
+  const generate = () => {
+    const settings = loadSettings();
+    const count = Math.min(TEST_NAMES.length, Math.max(4, settings.expectedPlayers || 10));
+    const names = shuffle(TEST_NAMES).slice(0, count);
 
-  const enabled = getEnabledRoles();
-  const pool = enabled.length ? enabled.map((r) => r.id) : ['villageois'];
-  let roleIds = shuffle(pool);
-  while (roleIds.length < count) roleIds.push(pool[Math.floor(Math.random() * pool.length)]);
-  roleIds = shuffle(roleIds).slice(0, count);
+    const enabled = getEnabledRoles();
+    const pool = enabled.length ? enabled.map((r) => r.id) : ['villageois'];
+    let roleIds = shuffle(pool);
+    while (roleIds.length < count) roleIds.push(pool[Math.floor(Math.random() * pool.length)]);
+    roleIds = shuffle(roleIds).slice(0, count);
 
-  state.players = names.map((name, i) => {
-    const p = ensurePlayerShape({ id: uid(), name, roleId: null, alive: true });
-    assignRole(p, roleIds[i]);
-    return p;
-  });
-  state.lovers = [null, null];
-  state.captainId = null;
-  state.phase = { type: 'standby', night: 0, stepIndex: 0 };
-  saveState();
-  render();
+    state.players = names.map((name, i) => {
+      const p = ensurePlayerShape({ id: uid(), name, roleId: null, alive: true });
+      assignRole(p, roleIds[i]);
+      return p;
+    });
+    state.lovers = [null, null];
+    state.captainId = null;
+    state.phase = { type: 'standby', night: 0, stepIndex: 0 };
+    saveState();
+    render();
+  };
+
+  if (state.players.length) {
+    askConfirm('Remplacer les joueurs actuels par un jeu de test généré au hasard ?').then((ok) => { if (ok) generate(); });
+  } else {
+    generate();
+  }
 }
 
 function renderTestTools() {
@@ -161,13 +168,16 @@ function swapPlayerRoles(playerId, targetId) {
   const p1 = getPlayer(playerId);
   const p2 = getPlayer(targetId);
   if (!p1 || !p2) return;
-  if (!confirm(`Échanger le rôle de ${p1.name} avec celui de ${p2.name} ?`)) return;
-  const role1 = p1.roleId;
-  const role2 = p2.roleId;
-  assignRole(p1, role2);
-  assignRole(p2, role1);
-  saveState();
-  render();
+  askConfirm(`Échanger le rôle de ${p1.name} avec celui de ${p2.name} ?`).then((ok) => {
+    if (!ok) return;
+    const role1 = p1.roleId;
+    const role2 = p2.roleId;
+    assignRole(p1, role2);
+    assignRole(p2, role1);
+    saveState();
+    render();
+    refreshOpenPlayerDetail();
+  });
 }
 
 function toggleAlive(id) {
@@ -284,10 +294,12 @@ function retreatPhase() {
 }
 
 function resetGame() {
-  if (!confirm('Réinitialiser complètement la partie (joueurs, rôles, historique) ?')) return;
-  state = defaultState();
-  saveState();
-  render();
+  askConfirm('Réinitialiser complètement la partie (joueurs, rôles, historique) ?').then((ok) => {
+    if (!ok) return;
+    state = defaultState();
+    saveState();
+    render();
+  });
 }
 
 // ---------- Setup vs. partie lancée ----------
@@ -466,7 +478,7 @@ function handleNightTargetTap(targetId) {
 
   if (WOLF_ROLE_IDS.includes(activeRoleId)) {
     if (!target.alive) return false;
-    if (confirm(`Les loups éliminent ${target.name} ?`)) toggleAlive(target.id);
+    askConfirm(`Les loups éliminent ${target.name} ?`).then((ok) => { if (ok) toggleAlive(target.id); });
     return true;
   }
 
@@ -476,7 +488,7 @@ function handleNightTargetTap(targetId) {
     if (state.lovers.includes(target.id)) return false;
     const slot = state.lovers[0] === null ? 0 : state.lovers[1] === null ? 1 : null;
     if (slot === null) return false;
-    if (confirm(`Désigner ${target.name} comme ${slot === 0 ? '1er' : '2e'} amoureux ?`)) setLover(slot, target.id);
+    askConfirm(`Désigner ${target.name} comme ${slot === 0 ? '1er' : '2e'} amoureux ?`).then((ok) => { if (ok) setLover(slot, target.id); });
     return true;
   }
 
@@ -487,10 +499,11 @@ function handleNightTargetTap(targetId) {
   const selectTracker = role.trackers.find((t) => t.type === 'select-player');
   if (selectTracker) {
     const msg = selectTracker.lethal ? `${role.name} élimine ${target.name} ?` : `${role.name} : cibler ${target.name} ?`;
-    if (confirm(msg)) {
+    askConfirm(msg).then((ok) => {
+      if (!ok) return;
       setSelectPlayerTracker(actor.id, selectTracker.key, target.id);
       if (selectTracker.lethal && target.alive) toggleAlive(target.id);
-    }
+    });
     return true;
   }
 
@@ -812,11 +825,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const role = player && getRole(player.roleId);
       const tracker = role && role.trackers && role.trackers.find((tr) => tr.key === t.dataset.key);
       const target = t.value ? getPlayer(t.value) : null;
-      if (tracker && tracker.lethal && target && target.alive && !confirm(`Éliminer ${target.name} ?`)) {
-        refreshOpenPlayerDetail(); // annule visuellement la sélection (revient à la valeur enregistrée)
+      if (tracker && tracker.lethal && target && target.alive) {
+        askConfirm(`Éliminer ${target.name} ?`).then((ok) => {
+          if (!ok) { refreshOpenPlayerDetail(); return; } // annule visuellement la sélection
+          setSelectPlayerTracker(t.dataset.player, t.dataset.key, t.value);
+          toggleAlive(target.id);
+          refreshOpenPlayerDetail();
+        });
       } else {
         setSelectPlayerTracker(t.dataset.player, t.dataset.key, t.value);
-        if (tracker && tracker.lethal && target && target.alive) toggleAlive(target.id);
         refreshOpenPlayerDetail();
       }
     }

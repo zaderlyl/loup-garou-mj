@@ -226,9 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   el('reset-settings').addEventListener('click', () => {
-    if (!confirm('Réinitialiser les paramètres de partie (rôles, règles maison) ?')) return;
-    saveSettings(defaultSettings());
-    loadIntoForm();
+    askConfirm('Réinitialiser les paramètres de partie (rôles, règles maison) ?').then((ok) => {
+      if (!ok) return;
+      saveSettings(defaultSettings());
+      loadIntoForm();
+    });
   });
 
   document.body.addEventListener('click', (e) => {
