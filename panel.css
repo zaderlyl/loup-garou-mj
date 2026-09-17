@@ -315,7 +315,11 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .player-card.dead { opacity: 0.45; }
-.player-card.night-actor { opacity: 0.4; }
+
+.player-card.night-actor {
+  background: var(--team-color-soft, var(--panel-bg-alt));
+  border-color: var(--team-color, var(--panel-edge));
+}
 
 .player-card-head {
   display: flex;
@@ -378,11 +382,47 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 .player-card-life { font-size: 0.95rem; flex-shrink: 0; }
 
 .player-card-badges {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   margin-top: 8px;
-  font-size: 0.85rem;
-  letter-spacing: 2px;
 }
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.68rem;
+  background: var(--panel-bg-alt);
+  border: 1.5px solid var(--panel-edge);
+  flex-shrink: 0;
+}
+
+.badge-pill.malus { border-color: var(--red); background: rgba(193, 93, 84, 0.18); }
+.badge-pill.bonus { border-color: var(--teal); background: rgba(79, 156, 134, 0.18); }
+.badge-pill.neutral { border-color: var(--gold); background: rgba(217, 169, 79, 0.18); }
+
+.player-detail-badges {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--panel-edge);
+}
+
+.badge-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.badge-row strong { color: var(--text); }
+.badge-row .badge-pill { margin-top: 1px; }
 
 .role-select, .notes {
   display: flex;

@@ -503,31 +503,91 @@ function handleNightTargetTap(targetId) {
   return false;
 }
 
+// Convertit une couleur hex (#rrggbb) en rgba() avec une opacite donnee,
+// pour un fond teinte a partir de --team-color (passe en style inline,
+// impossible a assombrir/eclaircir en CSS pur sans connaitre les valeurs).
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Badges calcules a la volee a partir de l'etat existant, plutot que
+// stockes a part : amoureux/capitaine/pouvoir epuise/sans role, plus les
+// cibles des roles a tracker select-player non letal (le badge apparait
+// sur la cible, pas sur l'acteur qui a deja son propre suivi dans sa fiche).
+// `kind` : 'malus' (defavorable), 'bonus' (protection/avantage) ou
+// 'neutral' (juste informatif).
+function getPlayerBadges(player) {
+  const badges = [];
+  const role = getRole(player.roleId);
+
+  if (!role) {
+    badges.push({ icon: '❔', kind: 'neutral', title: 'Sans rôle', text: "Ce joueur n'a pas encore de rôle assigné." });
+  }
+  if (state.lovers.includes(player.id)) {
+    const otherId = state.lovers[0] === player.id ? state.lovers[1] : state.lovers[0];
+    const other = otherId && getPlayer(otherId);
+    badges.push({
+      icon: '💘', kind: 'neutral', title: 'Amoureux',
+      text: other ? `Lié à ${other.name} par Cupidon — s'il meurt, l'autre meurt de chagrin.` : 'Lié à un autre joueur par Cupidon.',
+    });
+  }
+  if (state.captainId === player.id) {
+    badges.push({ icon: '👑', kind: 'neutral', title: 'Capitaine', text: 'Son vote compte double lors des votes du village.' });
+  }
+  const power = getPowerStatus(player);
+  if (power && power.remaining === 0) {
+    badges.push({ icon: '🚫', kind: 'neutral', title: 'Pouvoir épuisé', text: 'Ce joueur a déjà utilisé tout ce que son rôle permettait.' });
+  }
+
+  // Cibles designees par un role a tracker select-player non letal : le
+  // badge se reflete sur la cible plutot que de rester enferme dans la
+  // fiche de l'acteur (Corbeau, Gardien, Voyante pour l'instant).
+  const TARGET_BADGES = {
+    'capitaine-role': (actor) => ({ icon: '🐦', kind: 'malus', title: 'Cible du Corbeau', text: `${actor.name} l'a désigné cette nuit : +2 voix contre lui au prochain vote du village.` }),
+    gardien: (actor) => ({ icon: '🛡️', kind: 'bonus', title: 'Protégé', text: `Protégé cette nuit par ${actor.name} (Gardien) contre les loups.` }),
+    voyante: (actor) => ({ icon: '🔮', kind: 'neutral', title: 'Sondé par la Voyante', text: `${actor.name} a découvert son rôle cette nuit.` }),
+  };
+  state.players.forEach((actor) => {
+    if (!actor.alive || actor.id === player.id) return;
+    const actorRole = getRole(actor.roleId);
+    const makeBadge = actorRole && TARGET_BADGES[actorRole.id];
+    if (!makeBadge || !actorRole.trackers) return;
+    actorRole.trackers.forEach((t) => {
+      if (t.type !== 'select-player' || t.lethal) return;
+      const val = actor.flags[t.key];
+      if (val && val.current === player.id) badges.push(makeBadge(actor));
+    });
+  });
+
+  return badges;
+}
+
+function renderBadgePill(badge, uid) {
+  return `
+    <span class="badge-pill ${badge.kind}" data-badge-tip="${uid}" title="${badge.title} — ${badge.text}">${badge.icon}</span>`;
+}
+
 // Une seule ligne dense par joueur : avatar / rôle / camp / nom / vie ou
-// mort / bande de badges (pins collés, sans séparation, selon les facteurs
-// en cours : amoureux, capitaine, pouvoir épuisé, sans rôle...). Le détail
-// complet (rôle, pouvoirs, notes, actions) s'ouvre au clic sur la ligne.
+// mort / bande de badges (statuts calculés par getPlayerBadges). Le fond
+// se teinte de la couleur du camp pendant le tour du rôle correspondant
+// (isNightActor), pour repérer d'un coup d'œil qui est appelé. Le détail
+// complet (rôle, pouvoirs, notes, actions, explication des badges) s'ouvre
+// au clic sur la carte.
 function renderPlayerCard(player, activeRoleId) {
   const role = getRole(player.roleId);
   const teamColor = role ? TEAMS[role.team].color : '#5a6280';
-  const isLover = state.lovers.includes(player.id);
-  const isCaptain = state.captainId === player.id;
-  const power = getPowerStatus(player);
+  const badges = getPlayerBadges(player);
 
-  const badges = [
-    !role ? '❔' : '',
-    isLover ? '💘' : '',
-    isCaptain ? '👑' : '',
-    power && power.remaining === 0 ? '🚫' : '',
-  ].join('');
-
-  // Pendant le tour d'un rôle, le(s) joueur(s) qui le détiennent sont
-  // grisés (l'attention du MJ doit aller vers la cible, pas vers l'acteur).
   const isNightActor = activeRoleId && player.roleId === activeRoleId;
   const cardClass = ['player-card', player.alive ? '' : 'dead', isNightActor ? 'night-actor' : ''].filter(Boolean).join(' ');
+  const cardStyle = `--team-color:${teamColor};--team-color-soft:${hexToRgba(teamColor, 0.22)}`;
 
   return `
-    <button type="button" class="${cardClass}" style="--team-color:${teamColor}" data-action="open-player" data-player="${player.id}">
+    <button type="button" class="${cardClass}" style="${cardStyle}" data-action="open-player" data-player="${player.id}">
       <span class="player-card-head">
         <span class="player-avatar">${player.name.charAt(0).toUpperCase()}</span>
         <span class="player-card-info">
@@ -539,7 +599,7 @@ function renderPlayerCard(player, activeRoleId) {
         </span>
         <span class="player-card-life">${player.alive ? '❤' : '💀'}</span>
       </span>
-      ${badges ? `<span class="player-card-badges">${badges}</span>` : ''}
+      ${badges.length ? `<span class="player-card-badges">${badges.map((b, i) => renderBadgePill(b, `${player.id}-${i}`)).join('')}</span>` : ''}
     </button>`;
 }
 
@@ -557,11 +617,24 @@ function renderPlayerDetail(player) {
        <p class="lock-note">🔒 Verrouillé — mettez la partie en pause pour changer de rôle.</p>`
     : renderRolePicker(player);
 
+  const badges = getPlayerBadges(player);
+  const badgesHtml = badges.length
+    ? `<div class="player-detail-badges">
+        <p class="tracker-label">Statuts actifs</p>
+        ${badges.map((b) => `
+          <div class="badge-row ${b.kind}">
+            <span class="badge-pill ${b.kind}">${b.icon}</span>
+            <span class="badge-row-text"><strong>${b.title}</strong> — ${b.text}</span>
+          </div>`).join('')}
+      </div>`
+    : '';
+
   return `
     <div class="player-detail-head">
       <div class="player-avatar">${player.name.charAt(0).toUpperCase()}</div>
       <span class="player-detail-name">${player.name}</span>
     </div>
+    ${badgesHtml}
     <p class="tracker-label">Rôle</p>
     ${rolePickerHtml}
     ${role ? `<div class="role-desc">${teamBadge(role.team)} ${role.desc}</div>` : ''}
