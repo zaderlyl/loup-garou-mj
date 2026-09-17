@@ -24,9 +24,9 @@
 // de détail affiché par appui long sur une card, côté Hub).
 
 const TEAMS = {
-  village: { label: 'Village', color: '#2f9e6b' },
-  loups: { label: 'Loups-Garous', color: '#c44536' },
-  solo: { label: 'Solitaire', color: '#8657c9' },
+  village: { label: 'Village', color: '#4f8f6f' },
+  loups: { label: 'Loups-Garous', color: '#a8534a' },
+  solo: { label: 'Solitaire', color: '#7d63a8' },
 };
 
 const ROLES = [

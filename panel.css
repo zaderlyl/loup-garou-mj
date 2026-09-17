@@ -2,10 +2,6 @@
    Fichier autonome, chargé uniquement par panel.html. */
 
 :root {
-  --world-sky: #1c3a52;
-  --world-grass: #1f4a2f;
-  --world-ground: #142418;
-
   --panel-bg: #171b26;
   --panel-bg-alt: #1e2333;
   --panel-border: #0a0c12;
@@ -18,13 +14,13 @@
   --cream-dark: #b99a55;
   --cream-text: #3b2d12;
 
-  --teal: #35d6a6;
-  --teal-dark: #1b8f6c;
+  --teal: #4f9c86;
+  --teal-dark: #336b57;
 
-  --red: #ef5757;
-  --red-dark: #a53434;
+  --red: #c15d54;
+  --red-dark: #7a3a34;
 
-  --gold: #f5c94c;
+  --gold: #d9a94f;
 
   --pc: 8px;
 }
@@ -42,7 +38,7 @@ body {
   padding: 0;
   background: var(--panel-bg);
   color: var(--text);
-  font-family: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  font-family: 'Manrope', system-ui, sans-serif;
 }
 
 .game-frame {
@@ -58,10 +54,11 @@ header {
 
 header h1 {
   margin: 0 0 4px;
-  font-size: 1.25rem;
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 1.35rem;
   color: var(--gold);
-  letter-spacing: 0.02em;
-  text-shadow: 2px 2px 0 var(--panel-border);
+  letter-spacing: 0.01em;
 }
 
 header p {
@@ -74,38 +71,28 @@ header p {
 
 .btn {
   font-family: inherit;
-  border: 2px solid var(--panel-border);
-  border-bottom-width: 5px;
-  border-bottom-color: var(--cream-dark);
-  background: var(--cream);
-  color: var(--cream-text);
+  border: 1.5px solid var(--panel-edge);
+  background: transparent;
+  color: var(--text);
   padding: 10px 14px;
-  border-radius: 0;
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  --pc: 4px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
-  transition: transform 0.08s ease, border-bottom-width 0.08s ease, filter 0.08s ease, background 0.08s ease, color 0.08s ease;
+  transition: transform 0.08s ease, filter 0.08s ease, background 0.08s ease, border-color 0.08s ease, color 0.08s ease;
 }
 
 .btn.small { padding: 7px 10px; font-size: 0.68rem; }
 .btn.icon { padding: 6px 9px; font-size: 0.85rem; line-height: 1; }
 
-.btn.primary { background: var(--teal); color: #052a20; border-bottom-color: var(--teal-dark); }
-.btn.danger { background: var(--red); color: #2a0a0a; border-bottom-color: var(--red-dark); }
-.btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--panel-edge); border-bottom-color: var(--panel-edge); }
+.btn.primary { background: var(--teal); color: #052a20; border-color: var(--teal-dark); }
+.btn.danger { background: var(--red); color: #2a0a0a; border-color: var(--red-dark); }
+.btn.ghost { background: transparent; color: var(--text-muted); border-color: var(--panel-edge); }
 
-.btn:hover { filter: brightness(1.25) saturate(1.15); border-bottom-width: 7px; transform: translateY(-3px); }
+.btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .btn.ghost:hover { background: var(--panel-edge); color: var(--text); filter: none; }
-.btn:active { filter: brightness(0.85); transform: translateY(4px); border-bottom-width: 2px; }
+.btn:active { filter: brightness(0.9); transform: translateY(0); }
 
 .btn:disabled {
   opacity: 0.3;
