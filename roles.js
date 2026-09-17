@@ -74,7 +74,11 @@ const ROLES = [
     emoji: '🏹',
     wake: "Ne se réveille pas la nuit ; agit uniquement au moment de sa mort.",
     desc: "Quand il meurt (nuit ou jour), désigne immédiatement un joueur qui meurt avec lui.",
-    trackers: [{ key: 'victime', label: 'Tire sur...', type: 'select-player', lethal: true }],
+    // `onDeath: true` : ce pouvoir ne se declenche pas via une etape de
+    // NIGHT_ORDER (le Chasseur ne se reveille jamais la nuit) mais au moment
+    // precis de sa mort -> toggleAlive() ouvre alors automatiquement sa
+    // fiche pour que le MJ designe la victime sans avoir a y penser.
+    trackers: [{ key: 'victime', label: 'Tire sur...', type: 'select-player', lethal: true, onDeath: true }],
   },
   {
     id: 'cupidon',
@@ -148,7 +152,11 @@ const ROLES = [
     emoji: '🧎',
     wake: "Ne se réveille jamais seul ; peut être réveillé une fois par le MJ.",
     desc: "Dort à l'écart du village. Peut être réveillé une seule fois par le MJ pour communiquer avec les loups ou consulter une carte.",
-    trackers: [{ key: 'reveille', label: 'Déjà réveillé une fois', type: 'toggle' }],
+    // `standingReminder: true` : pouvoir jamais rattache a une etape de
+    // NIGHT_ORDER (l'Ermite ne se reveille pas seul) -> un badge "disponible"
+    // reste affiche sur sa propre carte tant qu'il n'a pas ete utilise, pour
+    // que le MJ n'oublie pas qu'il peut le declencher a tout moment.
+    trackers: [{ key: 'reveille', label: 'Déjà réveillé une fois', type: 'toggle', standingReminder: true }],
   },
   {
     id: 'idiot-du-village',

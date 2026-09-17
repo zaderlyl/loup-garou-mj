@@ -183,9 +183,24 @@ function swapPlayerRoles(playerId, targetId) {
 function toggleAlive(id) {
   const p = getPlayer(id);
   if (!p) return;
+  const wasAlive = p.alive;
   p.alive = !p.alive;
   saveState();
   render();
+  // Certains pouvoirs ne sont pas rattaches a une etape de NIGHT_ORDER mais
+  // se declenchent au moment precis de la mort (ex. le tir du Chasseur) :
+  // sans ce declic explicite, rien dans l'interface ne rappelle au MJ de
+  // designer la cible. On ouvre donc directement la fiche du joueur qui
+  // vient de mourir quand un tel pouvoir reste a resoudre.
+  if (wasAlive && !p.alive) {
+    const role = getRole(p.roleId);
+    const pending = role && role.trackers && role.trackers.find((t) => {
+      if (!t.onDeath || t.type !== 'select-player') return false;
+      const val = p.flags[t.key];
+      return !(val && val.current);
+    });
+    if (pending) showPlayerDetail(p.id);
+  }
 }
 
 function toggleFlag(playerId, key) {
@@ -561,6 +576,23 @@ function getPlayerBadges(player) {
   const power = getPowerStatus(player);
   if (power && power.remaining === 0) {
     badges.push({ icon: '🚫', kind: 'neutral', title: 'Pouvoir épuisé', text: 'Ce joueur a déjà utilisé tout ce que son rôle permettait.' });
+  }
+
+  // Rappels pour les pouvoirs qui ne passent par aucune etape de
+  // NIGHT_ORDER (voir roles.js : `onDeath` / `standingReminder`) — sans ce
+  // badge, rien ne signale au MJ qu'il reste une action a declencher.
+  if (role && role.trackers) {
+    role.trackers.forEach((t) => {
+      if (t.onDeath && t.type === 'select-player' && !player.alive) {
+        const val = player.flags[t.key];
+        if (!(val && val.current)) {
+          badges.push({ icon: role.emoji, kind: 'malus', title: `${role.name} — pouvoir à résoudre`, text: `Vient de mourir : ouvrez sa fiche pour désigner sa cible (${t.label.toLowerCase()}).` });
+        }
+      }
+      if (t.standingReminder && t.type === 'toggle' && player.alive && !player.flags[t.key]) {
+        badges.push({ icon: role.emoji, kind: 'neutral', title: `${role.name} — pouvoir disponible`, text: `Pouvoir non utilisé (${t.label.toLowerCase()}) : peut être déclenché à tout moment, pas seulement pendant la nuit.` });
+      }
+    });
   }
 
   // Cibles designees par un role a tracker select-player non letal : le
