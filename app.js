@@ -79,6 +79,57 @@ function removePlayer(id) {
   render();
 }
 
+// ---------- Mode test : remplissage rapide pour tester les mecaniques ----------
+// Genere un jeu de joueurs fictifs et leur attribue au hasard les roles
+// actuellement autorises (parametres du Hub). Uniquement disponible tant que
+// la partie n'est pas lancee (status 'setup') : ca remplace entierement le
+// roster actuel, amoureux et capitaine compris.
+
+const TEST_NAMES = [
+  'Lea', 'Marc', 'Nora', 'Tom', 'Julie', 'Hugo', 'Chloe', 'Awa', 'Yanis', 'Karim',
+  'Sami', 'Ines', 'Paul', 'Nina', 'Theo', 'Manon', 'Elias', 'Camille', 'Rayan', 'Zoe',
+];
+
+function shuffle(list) {
+  const arr = list.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function fillTestPlayers() {
+  if (state.status !== 'setup') return;
+  if (state.players.length && !confirm('Remplacer les joueurs actuels par un jeu de test genere au hasard ?')) return;
+
+  const settings = loadSettings();
+  const count = Math.min(TEST_NAMES.length, Math.max(4, settings.expectedPlayers || 10));
+  const names = shuffle(TEST_NAMES).slice(0, count);
+
+  const enabled = getEnabledRoles();
+  const pool = enabled.length ? enabled.map((r) => r.id) : ['villageois'];
+  let roleIds = shuffle(pool);
+  while (roleIds.length < count) roleIds.push(pool[Math.floor(Math.random() * pool.length)]);
+  roleIds = shuffle(roleIds).slice(0, count);
+
+  state.players = names.map((name, i) => {
+    const p = ensurePlayerShape({ id: uid(), name, roleId: null, alive: true });
+    assignRole(p, roleIds[i]);
+    return p;
+  });
+  state.lovers = [null, null];
+  state.captainId = null;
+  state.phase = { type: 'standby', night: 0, stepIndex: 0 };
+  saveState();
+  render();
+}
+
+function renderTestTools() {
+  if (state.status !== 'setup') return '';
+  return `<button type="button" data-action="fill-test-players" class="btn small ghost test-fill-btn">🧪 Remplir avec des joueurs de test</button>`;
+}
+
 // Affecte un rôle à un joueur et (ré)initialise ses trackers en conséquence.
 // Pure mutation, sans saveState/render : utilisé aussi bien pour une
 // affectation simple que pour un échange de rôles entre deux joueurs.
@@ -630,6 +681,7 @@ function render() {
   el('stat-bar').innerHTML = renderStatBar();
   el('phase-banner').innerHTML = renderPhaseBanner();
   el('side-panels').innerHTML = renderLoversAndCaptain();
+  el('test-tools').innerHTML = renderTestTools();
   el('players').innerHTML = state.players.length
     ? `<div class="player-grid">${state.players.map((p) => renderPlayerCard(p, getActivePhaseRoleId())).join('')}</div>`
     : '<p class="empty">Ajoutez des joueurs ci-dessus pour commencer.</p>';
@@ -664,6 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (action === 'phase-next') advancePhase();
     if (action === 'phase-prev') retreatPhase();
     if (action === 'start-game') startGame();
+    if (action === 'fill-test-players') fillTestPlayers();
     if (action === 'freeze-game') freezeGame();
     if (action === 'resume-game') resumeGame();
   });
