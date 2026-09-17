@@ -1,5 +1,6 @@
-/* Direction artistique du Hub : fenêtre pixel-art posée sur un monde,
-   façon panel de gestion de groupe en jeu de gestion pixel art.
+/* Direction artistique du Hub : fenêtre flottante aux coins arrondis,
+   bordures fines et ombre douce (alignée sur index.css/panel.css, adoucis
+   avant le Hub - voir le commit "Adoucit la direction artistique").
    Ce fichier est chargé uniquement par hub.html : il ne touche pas
    au panel MJ principal (index.html). */
 
@@ -23,8 +24,6 @@
   --red-dark: #7a3a34;
 
   --gold: #d9a94f;
-
-  --pc: 8px;
 }
 
 * { box-sizing: border-box; }
@@ -48,17 +47,10 @@ body {
   max-width: 640px;
   margin: 0 auto;
   background: var(--panel-bg);
-  border: 3px solid var(--panel-border);
-  border-bottom-width: 6px;
-  padding: 16px 14px 22px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
-  /* Ombre dure et plate (sans flou) : convention pixel-art, pas de glow. */
-  box-shadow: 8px 8px 0 var(--panel-border);
+  border: 1px solid var(--panel-edge);
+  border-radius: 18px;
+  padding: 20px 18px 26px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
 header {
@@ -153,17 +145,10 @@ a.btn {
 
 .panel {
   background: var(--panel-bg-alt);
-  border: 2px solid var(--panel-edge);
-  border-radius: 0;
-  padding: 12px 12px 14px;
+  border: 1.5px solid var(--panel-edge);
+  border-radius: 16px;
+  padding: 14px 14px 16px;
   margin-bottom: 14px;
-  --pc: 8px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
 }
 
 .panel h3 {
@@ -197,11 +182,9 @@ textarea {
   text-transform: none;
   letter-spacing: normal;
   padding: 9px 10px;
-  border-radius: 0;
-  border: 2px solid var(--panel-border);
+  border-radius: 10px;
+  border: 1.5px solid var(--panel-edge);
   background: var(--panel-bg);
-  /* Inset dur : simule un renfoncement plutôt qu'un halo. */
-  box-shadow: inset 2px 2px 0 var(--panel-border);
   transition: border-color 0.08s ease, background 0.08s ease;
 }
 
@@ -253,8 +236,9 @@ textarea { resize: vertical; min-height: 44px; }
   flex-wrap: wrap;
   margin-top: -4px;
   margin-bottom: 12px;
-  padding: 8px 10px;
-  border: 2px dashed var(--panel-edge);
+  padding: 10px 12px;
+  border: 1.5px dashed var(--panel-edge);
+  border-radius: 12px;
   background: var(--panel-bg);
 }
 
@@ -286,52 +270,40 @@ textarea { resize: vertical; min-height: 44px; }
 
 .filter-tab {
   font-family: inherit;
-  border: 2px solid var(--panel-border);
-  border-bottom-width: 4px;
-  border-bottom-color: var(--panel-edge);
+  border: 1.5px solid var(--panel-edge);
   background: var(--panel-bg);
   color: var(--text-muted);
   padding: 6px 12px;
-  border-radius: 0;
+  border-radius: 999px;
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   cursor: pointer;
-  --pc: 3px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
-  transition: transform 0.08s ease, border-bottom-width 0.08s ease, filter 0.08s ease, background 0.08s ease, color 0.08s ease, border-color 0.08s ease;
+  transition: transform 0.08s ease, filter 0.08s ease, background 0.08s ease, color 0.08s ease, border-color 0.08s ease;
 }
 
 .filter-tab:hover:not(.active) {
   background: var(--panel-edge);
   color: var(--text);
   border-color: var(--text-muted);
-  border-bottom-width: 6px;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .filter-tab:active {
   filter: brightness(0.85);
-  transform: translateY(2px);
-  border-bottom-width: 2px;
+  transform: translateY(0);
 }
 
 .filter-tab.active {
   background: var(--gold);
   color: var(--cream-text);
-  border-bottom-color: var(--cream-dark);
+  border-color: var(--cream-dark);
   font-weight: 700;
 }
 
 .filter-tab.active:hover {
   filter: brightness(1.25) saturate(1.15);
-  border-bottom-width: 6px;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 /* ---------- Cards de rôles (slots d'inventaire) ---------- */
@@ -348,34 +320,25 @@ textarea { resize: vertical; min-height: 44px; }
   justify-content: center;
   min-height: 60px;
   background: var(--panel-bg);
-  border: 2px solid var(--panel-edge);
-  border-top: 4px solid var(--team-color, var(--panel-edge));
-  border-radius: 0;
+  border: 1.5px solid var(--panel-edge);
+  border-top: 3px solid var(--team-color, var(--panel-edge));
+  border-radius: 12px;
   padding: 8px 6px;
   cursor: pointer;
   color: var(--text);
   font-family: inherit;
   text-align: center;
-  box-shadow: inset 2px 2px 0 var(--panel-border);
-  transition: transform 0.08s ease, border-color 0.08s ease, background 0.08s ease, border-top-width 0.08s ease;
-  --pc: 5px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
+  transition: transform 0.08s ease, border-color 0.08s ease, background 0.08s ease;
 }
 
 .role-card:hover {
   border-color: var(--team-color, var(--text-muted));
-  border-top-width: 7px;
   background: var(--panel-edge);
-  transform: translateY(-3px) scale(1.05);
+  transform: translateY(-2px);
 }
 
 .role-card:active {
-  transform: scale(0.93);
+  transform: scale(0.97);
   background: var(--panel-border);
 }
 
@@ -408,7 +371,8 @@ textarea { resize: vertical; min-height: 44px; }
   text-align: left;
   font-weight: 700;
   background: var(--panel-bg);
-  border: 2px solid var(--red-dark);
+  border: 1.5px solid var(--red-dark);
+  border-radius: 12px;
   padding: 12px 14px;
   line-height: 1.5;
 }
@@ -435,17 +399,11 @@ textarea { resize: vertical; min-height: 44px; }
   max-height: 80vh;
   overflow-y: auto;
   background: var(--panel-bg-alt);
-  border: 2px solid var(--panel-edge);
-  border-top: 5px solid var(--team-color, var(--panel-edge));
+  border: 1.5px solid var(--panel-edge);
+  border-top: 4px solid var(--team-color, var(--panel-edge));
+  border-radius: 16px;
   padding: 18px 16px 16px;
-  --pc: 8px;
-  clip-path: polygon(
-    0 var(--pc), var(--pc) var(--pc), var(--pc) 0,
-    calc(100% - var(--pc)) 0, calc(100% - var(--pc)) var(--pc), 100% var(--pc),
-    100% calc(100% - var(--pc)), calc(100% - var(--pc)) calc(100% - var(--pc)), calc(100% - var(--pc)) 100%,
-    var(--pc) 100%, var(--pc) calc(100% - var(--pc)), 0 calc(100% - var(--pc))
-  );
-  box-shadow: 6px 6px 0 var(--panel-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 }
 
 .role-detail-close {
@@ -529,4 +487,15 @@ textarea { resize: vertical; min-height: 44px; }
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* ---------- Responsive mobile ---------- */
+
+@media (max-width: 480px) {
+  body { padding: 14px 8px 28px; }
+  .game-frame { padding: 16px 12px 22px; border-radius: 14px; }
+  header h1 { font-size: 1.15rem; }
+  .role-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
+  .preset-suggest { flex-direction: column; align-items: stretch; }
+  .preset-suggest .hint { min-width: 0; }
 }
