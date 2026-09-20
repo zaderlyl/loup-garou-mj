@@ -209,7 +209,12 @@ const WIN_CONDITIONS = [
       if (!alive.length) return null;
       const aliveLoups = alive.filter((p) => getRole(p.roleId)?.team === 'loups');
       if (aliveLoups.length === 0) {
-        return { team: 'village', label: 'Le Village gagne', detail: 'Tous les Loups-Garous ont été éliminés.' };
+        const survivors = alive.map((p) => p.name).join(', ');
+        return {
+          team: 'village',
+          label: 'Le Village gagne',
+          detail: `Tous les Loups-Garous ont été éliminés. Survivant${alive.length > 1 ? 's' : ''} : ${survivors}.`,
+        };
       }
       return null;
     },
@@ -223,6 +228,19 @@ const WIN_CONDITIONS = [
       const aliveOthers = alive.length - aliveLoups.length;
       if (aliveLoups.length > 0 && aliveLoups.length >= aliveOthers) {
         return { team: 'loups', label: 'Les Loups-Garous gagnent', detail: 'Ils sont au moins aussi nombreux que le reste du village.' };
+      }
+      return null;
+    },
+  },
+  // Filet de sécurité : personne n'est déclaré vainqueur si plus aucun
+  // joueur n'est en vie (arrive uniquement si le MJ corrige/élimine tout le
+  // monde en pause), pour que le MJ ait quand même un message clair au lieu
+  // d'un panel silencieux.
+  {
+    id: 'no-survivors',
+    check: (s) => {
+      if (s.players.length > 0 && s.players.every((p) => !p.alive)) {
+        return { team: null, label: 'Plus personne n\'est en vie', detail: 'Partie terminée sans vainqueur.' };
       }
       return null;
     },
