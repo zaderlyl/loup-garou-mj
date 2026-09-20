@@ -207,6 +207,12 @@ const WIN_CONDITIONS = [
     check: (s) => {
       const alive = s.players.filter((p) => p.alive);
       if (!alive.length) return null;
+      // Un joueur mort garde son roleId : on peut donc vérifier ici qu'un Loup
+      // a bien existé dans la partie (vivant ou déjà éliminé), pour ne pas
+      // déclarer la victoire du Village si aucun rôle Loup n'a jamais été
+      // distribué (partie mal configurée depuis le Hub).
+      const everHadLoup = s.players.some((p) => getRole(p.roleId)?.team === 'loups');
+      if (!everHadLoup) return null;
       const aliveLoups = alive.filter((p) => getRole(p.roleId)?.team === 'loups');
       if (aliveLoups.length === 0) {
         const survivors = alive.map((p) => p.name).join(', ');
