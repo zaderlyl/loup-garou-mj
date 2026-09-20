@@ -20,6 +20,9 @@ function defaultState() {
     // 'frozen' : pause temporaire pendant la partie pour tout modifier
     //   comme en 'setup', puis reprendre.
     status: 'setup',
+    // { team, label, detail } dès qu'une condition de victoire est remplie,
+    // sinon null. Voir checkWinConditions().
+    winner: null,
   };
 }
 
@@ -33,6 +36,7 @@ function loadState() {
         state.phase = { type: 'night', night: Math.max(1, state.nightCount || 1), stepIndex: 0 };
       }
       if (!state.status) state.status = 'setup';
+      if (state.winner === undefined) state.winner = null;
       return state;
     }
   } catch (e) {
@@ -42,6 +46,12 @@ function loadState() {
 }
 
 let state = loadState();
+
+// Masquage transitoire de la bannière de victoire (le MJ peut continuer à
+// consulter le panel sans la garder affichée) — non persisté : à la
+// prochaine ouverture, la bannière réapparaît tant que la partie n'est pas
+// réinitialisée.
+let winnerBannerDismissed = false;
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -180,11 +190,74 @@ function swapPlayerRoles(playerId, targetId) {
   });
 }
 
+// ---------- Conditions de victoire ----------
+//
+// Chaque entrée : { id, check(state) }. `check` renvoie { team, label,
+// detail } si la condition est remplie, sinon null/undefined.
+//
+// Vérifiées dans l'ordre du tableau et on s'arrête à la première qui
+// matche : les conditions spécifiques à un rôle (Ange, Joueur de Flûte,
+// Amoureux...) doivent être ajoutées AVANT les deux conditions de camp de
+// base ci-dessous, pour être détectées en priorité si elles coexistent.
+// Chaque rôle ajoute la sienne sur sa propre branche, fusionnée ensuite
+// dans "condition-de-victoire".
+const WIN_CONDITIONS = [
+  {
+    id: 'village',
+    check: (s) => {
+      const alive = s.players.filter((p) => p.alive);
+      if (!alive.length) return null;
+      const aliveLoups = alive.filter((p) => getRole(p.roleId)?.team === 'loups');
+      if (aliveLoups.length === 0) {
+        return { team: 'village', label: 'Le Village gagne', detail: 'Tous les Loups-Garous ont été éliminés.' };
+      }
+      return null;
+    },
+  },
+  {
+    id: 'loups',
+    check: (s) => {
+      const alive = s.players.filter((p) => p.alive);
+      if (!alive.length) return null;
+      const aliveLoups = alive.filter((p) => getRole(p.roleId)?.team === 'loups');
+      const aliveOthers = alive.length - aliveLoups.length;
+      if (aliveLoups.length > 0 && aliveLoups.length >= aliveOthers) {
+        return { team: 'loups', label: 'Les Loups-Garous gagnent', detail: 'Ils sont au moins aussi nombreux que le reste du village.' };
+      }
+      return null;
+    },
+  },
+];
+
+function checkWinConditions() {
+  if (!state.players.length) return null;
+  for (const condition of WIN_CONDITIONS) {
+    const result = condition.check(state);
+    if (result) return result;
+  }
+  return null;
+}
+
+// Recalcule le vainqueur et réaffiche la bannière si le résultat a changé
+// depuis la dernière vérification (nouvelle condition remplie, ou partie
+// qui redevient indécise après une correction du MJ en pause).
+function refreshWinner() {
+  const result = checkWinConditions();
+  if (JSON.stringify(result) !== JSON.stringify(state.winner)) winnerBannerDismissed = false;
+  state.winner = result;
+}
+
+function dismissWinnerBanner() {
+  winnerBannerDismissed = true;
+  render();
+}
+
 function toggleAlive(id) {
   const p = getPlayer(id);
   if (!p) return;
   const wasAlive = p.alive;
   p.alive = !p.alive;
+  refreshWinner();
   saveState();
   render();
   // Certains pouvoirs ne sont pas rattaches a une etape de NIGHT_ORDER mais
@@ -286,6 +359,7 @@ function advancePhase() {
   } else {
     state.phase = { type: 'night', night: phase.night + 1, stepIndex: 0 };
   }
+  refreshWinner();
   saveState();
   render();
 }
@@ -304,6 +378,7 @@ function retreatPhase() {
   } else {
     state.phase = { type: 'standby', night: 0, stepIndex: 0 };
   }
+  refreshWinner();
   saveState();
   render();
 }
@@ -312,6 +387,7 @@ function resetGame() {
   askConfirm('Réinitialiser complètement la partie (joueurs, rôles, historique) ?').then((ok) => {
     if (!ok) return;
     state = defaultState();
+    winnerBannerDismissed = false;
     saveState();
     render();
   });
@@ -801,7 +877,20 @@ function renderLoversAndCaptain() {
     </div>`;
 }
 
+function renderWinnerBanner() {
+  if (!state.winner || winnerBannerDismissed) return '';
+  return `
+    <div class="winner-banner team-${state.winner.team}">
+      <div>
+        <strong>🏆 ${state.winner.label}</strong>
+        <p>${state.winner.detail}</p>
+      </div>
+      <button type="button" data-action="dismiss-winner" class="btn small ghost" title="Masquer">✕</button>
+    </div>`;
+}
+
 function render() {
+  el('winner-banner').innerHTML = renderWinnerBanner();
   el('game-status-bar').innerHTML = renderGameStatusBar();
   el('stat-bar').innerHTML = renderStatBar();
   el('phase-banner').innerHTML = renderPhaseBanner();
@@ -841,6 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (action === 'phase-next') advancePhase();
     if (action === 'phase-prev') retreatPhase();
     if (action === 'start-game') startGame();
+    if (action === 'dismiss-winner') dismissWinnerBanner();
     if (action === 'fill-test-players') fillTestPlayers();
     if (action === 'freeze-game') freezeGame();
     if (action === 'resume-game') resumeGame();
