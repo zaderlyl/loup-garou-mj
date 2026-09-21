@@ -221,6 +221,39 @@ const WIN_CONDITIONS = [
     },
   },
   {
+    // L'Ange n'a pas de condition calculable automatiquement (il faut
+    // distinguer vote/nuit et compter les tours) : le MJ coche lui-même la
+    // case "A gagné" sur la fiche du rôle (roles.js) une fois la condition
+    // remplie ; cette entrée se contente de lire ce flag pour afficher la
+    // bannière de victoire correspondante.
+    id: 'ange',
+    check: (s) => {
+      const ange = s.players.find((p) => p.roleId === 'ange');
+      if (!ange || !ange.flags.aGagne) return null;
+      return {
+        team: 'solo',
+        label: "L'Ange gagne",
+        detail: `${ange.name} a été éliminé avant la fin du tour 2 : il gagne seul.`,
+      };
+    },
+  },
+  {
+    id: 'joueur-de-flute',
+    check: (s) => {
+      const flutiste = s.players.find((p) => p.roleId === 'joueur-de-flute');
+      if (!flutiste || !flutiste.alive) return null;
+      const others = s.players.filter((p) => p.alive && p.id !== flutiste.id);
+      if (!others.length) return null;
+      const charmed = new Set(flutiste.flags.charmes || []);
+      if (!others.every((p) => charmed.has(p.id))) return null;
+      return {
+        team: 'solo',
+        label: 'Le Joueur de Flûte gagne',
+        detail: `${flutiste.name} a charmé tous les joueurs encore en vie.`,
+      };
+    },
+  },
+  {
     id: 'village',
     check: (s) => {
       const alive = s.players.filter((p) => p.alive);
