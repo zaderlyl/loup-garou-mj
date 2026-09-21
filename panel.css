@@ -195,6 +195,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .winner-banner.team-village { --banner-color: #4f8f6f; }
 .winner-banner.team-loups { --banner-color: #a8534a; }
 .winner-banner.team-solo { --banner-color: #7d63a8; }
+.winner-banner.team-amoureux { --banner-color: #c97fb0; }
 
 .freeze-banner {
   display: flex;
