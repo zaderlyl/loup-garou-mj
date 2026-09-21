@@ -203,6 +203,24 @@ function swapPlayerRoles(playerId, targetId) {
 // dans "condition-de-victoire".
 const WIN_CONDITIONS = [
   {
+    id: 'amoureux',
+    check: (s) => {
+      const [loverAId, loverBId] = s.lovers;
+      if (!loverAId || !loverBId) return null;
+      const alive = s.players.filter((p) => p.alive);
+      if (alive.length !== 2) return null;
+      const aliveIds = new Set(alive.map((p) => p.id));
+      if (!aliveIds.has(loverAId) || !aliveIds.has(loverBId)) return null;
+      const loverA = s.players.find((p) => p.id === loverAId);
+      const loverB = s.players.find((p) => p.id === loverBId);
+      return {
+        team: 'amoureux',
+        label: 'Les Amoureux gagnent',
+        detail: `${loverA.name} et ${loverB.name} sont les deux derniers survivants : ils gagnent ensemble, quel que soit leur camp.`,
+      };
+    },
+  },
+  {
     id: 'village',
     check: (s) => {
       const alive = s.players.filter((p) => p.alive);
